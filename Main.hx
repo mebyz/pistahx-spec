@@ -58,5 +58,14 @@ class Main {
     var k3=Type.getClassName(Type.getClass(nativeObject.info.title));
     trace('yaml key info.title is a $k3');
     trace(nativeObject.info.title);
+
+    trace('
+typedef root = {
+ swagger : $k1;
+ infos : {
+   title : $k3;
+ }
+}');
+
   }
 }

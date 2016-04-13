@@ -75,6 +75,7 @@ Main.main = function() {
 	var k3 = Type.getClassName(Type.getClass(nativeObject.info.title));
 	console.log("yaml key info.title is a " + k3);
 	console.log(nativeObject.info.title);
+	console.log("\ntypedef root = {\n swagger : " + k1 + ";\n infos : {\n   title : " + k3 + ";\n }\n}");
 };
 Math.__name__ = ["Math"];
 var Reflect = function() { };
