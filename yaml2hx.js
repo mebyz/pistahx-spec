@@ -48,6 +48,15 @@ HxOverrides.iter = function(a) {
 };
 var Lambda = function() { };
 Lambda.__name__ = ["Lambda"];
+Lambda.map = function(it,f) {
+	var l = new List();
+	var $it0 = $iterator(it)();
+	while( $it0.hasNext() ) {
+		var x = $it0.next();
+		l.add(f(x));
+	}
+	return l;
+};
 Lambda.has = function(it,elt) {
 	var $it0 = $iterator(it)();
 	while( $it0.hasNext() ) {
@@ -59,6 +68,19 @@ Lambda.has = function(it,elt) {
 Lambda.empty = function(it) {
 	return !$iterator(it)().hasNext();
 };
+var List = function() {
+	this.length = 0;
+};
+List.__name__ = ["List"];
+List.prototype = {
+	add: function(item) {
+		var x = [item];
+		if(this.h == null) this.h = x; else this.q[1] = x;
+		this.q = x;
+		this.length++;
+	}
+	,__class__: List
+};
 var Main = function() { };
 Main.__name__ = ["Main"];
 Main.main = function() {
@@ -66,6 +88,7 @@ Main.main = function() {
 	var specPath = "./api.yaml";
 	var yaml1 = js_node_Fs.readFileSync(specPath,"utf8");
 	var nativeObject = yaml_Yaml.parse(yaml1,yaml_Parser.options().useObjects());
+	var defs = nativeObject.definitions;
 	var k1 = Type.getClassName(Type.getClass(nativeObject.swagger));
 	console.log("yaml key swagger is a " + k1 + " :");
 	console.log(nativeObject.swagger);
@@ -75,6 +98,12 @@ Main.main = function() {
 	var k3 = Type.getClassName(Type.getClass(nativeObject.info.title));
 	console.log("yaml key info.title is a " + k3);
 	console.log(nativeObject.info.title);
+	var defsx = Reflect.fields(defs);
+	Lambda.map(defsx,function(def) {
+		console.log(def);
+		var content = Reflect.field(defs,def);
+		console.log(content.properties);
+	});
 	console.log("\ntypedef root = {\n swagger : " + k1 + ";\n infos : {\n   title : " + k3 + ";\n }\n}");
 };
 Math.__name__ = ["Math"];

@@ -32,3 +32,20 @@ paths:
       responses:
         200:
           description: "200 is returned"
+definitions:
+  Users:
+    type: "object"
+    properties:
+      result:
+        type: "array"
+        items:
+          $ref: "#/definitions/User"
+  User:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        description: "Unique identifier representing a specific user"
+      name:
+        type: "string"
+        description: "Name of user."

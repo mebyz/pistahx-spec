@@ -8,17 +8,17 @@ import yaml.Renderer;
 import yaml.util.ObjectMap;
 
 
-//OPENAPI 
+// PARTIAL OPENAPI 
 typedef ApiDefinition = {
     swagger: String,
     info: InfoObject,
     ?host: String,
     ?basePath: String,
-    ?schemes: Array<String>/*,
+    ?schemes: Array<String>,/*,
     ?consumes: MimeTypes,
     ?produces: MimeTypes,
-    paths: PathsObject,
-    ?definitions: DefinitionsObject,
+    paths: PathsObject,*/
+    definitions: Array<Map<String,Dynamic>>/*,
     ?parameters: ParametersDefinitionsObject,
     ?responses: ResponsesDefinitionsObject,
     ?securityDefinitions: SecurityDefinitionsObject,
@@ -38,7 +38,9 @@ typedef InfoObject = {
     version: String
 }
 
-//OPENAPI
+
+typedef DefinitionsObject = Array<Dynamic>; ////CHANGE HERE
+// PARTIAL OPENAPI
 
 class Main {
   static function main() {
@@ -47,6 +49,8 @@ class Main {
     var yaml = Fs.readFileSync(specPath, 'utf8');
     var nativeObject : ApiDefinition = Yaml.parse(yaml, Parser.options().useObjects());
   
+    var defs = nativeObject.definitions;
+
     var k1=Type.getClassName(Type.getClass(nativeObject.swagger));
     trace('yaml key swagger is a $k1 :');
     trace(nativeObject.swagger);
@@ -58,6 +62,14 @@ class Main {
     var k3=Type.getClassName(Type.getClass(nativeObject.info.title));
     trace('yaml key info.title is a $k3');
     trace(nativeObject.info.title);
+
+    var defsx = Reflect.fields(defs);
+    Lambda.map(defsx,function(def) {
+        trace(def);
+        var content = Reflect.field(defs,def);
+        trace(content.properties);
+    });
+
 
     trace('
 typedef root = {
