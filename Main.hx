@@ -4,6 +4,8 @@ import yaml.Parser;
 import yaml.Renderer;
 import yaml.util.ObjectMap;
 import yaml.type.YInt;
+import js.Node;
+import js.Node.*;
 
 // PARTIAL OPENAPI START
 typedef ApiDefinition = {
@@ -43,37 +45,55 @@ class Main {
     }
 
     static function main() {
-        var specPath = './api.yaml';
-        var yaml = Fs.readFileSync(specPath, 'utf8');
-        var nativeObject : ApiDefinition = Yaml.parse(yaml, Parser.options().useObjects());
 
-        var defs = nativeObject.definitions;
-        var defsx = Reflect.fields(defs);
-        var res = [];
-        Lambda.map(defsx,function(def) {
-            res.push(' typedef $def = ');
-            var content = Reflect.field(defs,def);
-            
-            if (Reflect.hasField(content.properties, 'result')){
-                res.push('Array<' + Reflect.field(content.properties.result.items,"$ref").replace('#/definitions/','')+'>;');
-            }
-            else {
+        if(process.env.exists("input") && process.env.exists("output")) {
+        
+            var specPath    = process.env.get("input");
+            var outPath     = process.env.get("output");
 
-                res.push('{');
+            var yaml = Fs.readFileSync(specPath, 'utf8');
+            var nativeObject : ApiDefinition = Yaml.parse(yaml, Parser.options().useObjects());
 
-                var props = Reflect.fields(content.properties);
-                var keys = [];
-                Lambda.map(props,function(prop) {
-                    var propx = Reflect.field(content.properties,prop);
-                    var type = getType(propx);
-                    keys.push('$prop : $type');
-                }); 
+            var defs = nativeObject.definitions;
+            var defsx = Reflect.fields(defs);
+            var res = [];
+            Lambda.map(defsx,function(def) {
+                res.push(' typedef $def = ');
+                var content = Reflect.field(defs,def);
+                
+                if (Reflect.hasField(content.properties, 'result')){
+                    res.push('Array<' + Reflect.field(content.properties.result.items,"$ref").replace('#/definitions/','')+'>;');
+                }
+                else {
 
-                res.push(keys.toString());
+                    res.push('{');
 
-                res.push("}; ");
-            }           
-        });
-        trace(res.join(''));
+                    var props = Reflect.fields(content.properties);
+                    var keys = [];
+                    Lambda.map(props,function(prop) {
+                        var propx = Reflect.field(content.properties,prop);
+                        var type = getType(propx);
+                        keys.push('$prop : $type');
+                    }); 
+
+                    res.push(keys.toString());
+
+                    res.push("}; ");
+                }           
+            });
+
+
+            trace(res.join(''));
+
+            Fs.writeFile(
+                outPath, 
+                new js.node.Buffer(res.join('')),
+                function(err) {
+                console.log('$outPath file saved!');
+                }
+            );
+        }
+        else 
+            trace('missing one or more parameters ( usage : input=[yaml_filename] output=[haxe_filename] ./run.sh ) ');
     }
 }

@@ -95,29 +95,49 @@ Main.getType = function(expr) {
 	}
 };
 Main.main = function() {
-	var specPath = "./api.yaml";
-	var yaml1 = js_node_Fs.readFileSync(specPath,"utf8");
-	var nativeObject = yaml_Yaml.parse(yaml1,yaml_Parser.options().useObjects());
-	var defs = nativeObject.definitions;
-	var defsx = Reflect.fields(defs);
-	var res = [];
-	Lambda.map(defsx,function(def) {
-		res.push(" typedef " + def + " = ");
-		var content = Reflect.field(defs,def);
-		if(Object.prototype.hasOwnProperty.call(content.properties,"result")) res.push("Array<" + Std.string(Reflect.field(content.properties.result.items,"$ref").replace("#/definitions/","")) + ">;"); else {
-			res.push("{");
-			var props = Reflect.fields(content.properties);
-			var keys = [];
-			Lambda.map(props,function(prop) {
-				var propx = Reflect.field(content.properties,prop);
-				var type = Main.getType(propx);
-				keys.push("" + prop + " : " + type);
-			});
-			res.push(keys.toString());
-			res.push("}; ");
-		}
-	});
-	console.log(res.join(""));
+	if((function($this) {
+		var $r;
+		var this1 = process.env;
+		$r = Object.prototype.hasOwnProperty.call(this1,"input");
+		return $r;
+	}(this)) && (function($this) {
+		var $r;
+		var this2 = process.env;
+		$r = Object.prototype.hasOwnProperty.call(this2,"output");
+		return $r;
+	}(this))) {
+		var specPath;
+		var this3 = process.env;
+		specPath = this3.input;
+		var outPath;
+		var this4 = process.env;
+		outPath = this4.output;
+		var yaml1 = js_node_Fs.readFileSync(specPath,"utf8");
+		var nativeObject = yaml_Yaml.parse(yaml1,yaml_Parser.options().useObjects());
+		var defs = nativeObject.definitions;
+		var defsx = Reflect.fields(defs);
+		var res = [];
+		Lambda.map(defsx,function(def) {
+			res.push(" typedef " + def + " = ");
+			var content = Reflect.field(defs,def);
+			if(Object.prototype.hasOwnProperty.call(content.properties,"result")) res.push("Array<" + Std.string(Reflect.field(content.properties.result.items,"$ref").replace("#/definitions/","")) + ">;"); else {
+				res.push("{");
+				var props = Reflect.fields(content.properties);
+				var keys = [];
+				Lambda.map(props,function(prop) {
+					var propx = Reflect.field(content.properties,prop);
+					var type = Main.getType(propx);
+					keys.push("" + prop + " : " + type);
+				});
+				res.push(keys.toString());
+				res.push("}; ");
+			}
+		});
+		console.log(res.join(""));
+		js_node_Fs.writeFile(outPath,new js_node_buffer_Buffer(res.join("")),function(err) {
+			console.log("" + outPath + " file saved!");
+		});
+	} else console.log("missing one or more parameters ( usage : input=[yaml_filename] output=[haxe_filename] ./run.sh ) ");
 };
 Math.__name__ = ["Math"];
 var Reflect = function() { };
@@ -719,6 +739,7 @@ js_html_compat_Uint8Array._subarray = function(start,end) {
 	return a;
 };
 var js_node_Fs = require("fs");
+var js_node_buffer_Buffer = require("buffer").Buffer;
 var yaml_ParserOptions = function(schema) {
 	if(schema == null) this.schema = new yaml_schema_DefaultSchema(); else this.schema = schema;
 	this.strict = false;

@@ -1,0 +1,1 @@
+ typedef Users = Array<User>; typedef User = {id : Int,name : String}; 
