@@ -91,12 +91,13 @@ Main.main = function() {
 	var defs = nativeObject.definitions;
 	var defsx = Reflect.fields(defs);
 	Lambda.map(defsx,function(def) {
-		console.log("typedef " + def + " = ");
+		var res = "typedef " + def + " = ";
 		var content = Reflect.field(defs,def);
-		if(Object.prototype.hasOwnProperty.call(content.properties,"result")) console.log("Array<" + Std.string(Reflect.field(content.properties.result.items,"$ref").replace("#/definitions/","")) + ">;"); else {
-			console.log("{");
-			console.log("};");
+		if(Object.prototype.hasOwnProperty.call(content.properties,"result")) res += "Array<" + Std.string(Reflect.field(content.properties.result.items,"$ref").replace("#/definitions/","")) + ">;"; else {
+			res += "{";
+			res += "};";
 		}
+		console.log(res);
 	});
 };
 Math.__name__ = ["Math"];

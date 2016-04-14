@@ -50,24 +50,24 @@ class Main {
     var nativeObject : ApiDefinition = Yaml.parse(yaml, Parser.options().useObjects());
   
     var defs = nativeObject.definitions;
-
     var defsx = Reflect.fields(defs);
 
     Lambda.map(defsx,function(def) {
-        trace('typedef $def = ');
+        var res = 'typedef $def = ';
         var content = Reflect.field(defs,def);
         
         if (Reflect.hasField(content.properties, 'result')){
-            trace('Array<' + Reflect.field(content.properties.result.items,"$ref").replace('#/definitions/','')+'>;');
+            res += 'Array<' + Reflect.field(content.properties.result.items,"$ref").replace('#/definitions/','')+'>;';
         }
         else {
 
-         trace('{');
+         res += '{';
          ////
 
          ////
-         trace('};');
+         res += '};';
         }           
+        trace(res);
     });
 
 
