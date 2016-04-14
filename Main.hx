@@ -1,30 +1,17 @@
-import js.Node;
-import js.Node.*;
 import js.node.Fs;
-
 import yaml.Yaml;
 import yaml.Parser;
 import yaml.Renderer;
 import yaml.util.ObjectMap;
 
-
-// PARTIAL OPENAPI 
+// PARTIAL OPENAPI START
 typedef ApiDefinition = {
     swagger: String,
     info: InfoObject,
     ?host: String,
     ?basePath: String,
-    ?schemes: Array<String>,/*,
-    ?consumes: MimeTypes,
-    ?produces: MimeTypes,
-    paths: PathsObject,*/
-    definitions: Array<Map<String,Dynamic>>/*,
-    ?parameters: ParametersDefinitionsObject,
-    ?responses: ResponsesDefinitionsObject,
-    ?securityDefinitions: SecurityDefinitionsObject,
-    ?security: Array<SecurityRequirementObject>,
-    ?tags: Array<TagObject>,
-    ?externalDocs: ExternalDocumentationObject*/
+    ?schemes: Array<String>,
+    definitions: Array<Map<String,Dynamic>>
 }
 
 typedef MimeTypes = Array<String>;
@@ -33,18 +20,15 @@ typedef InfoObject = {
     title: String,
     ?description: String,
     termsOfService: String,
-   // ?contact: ContactObject,
-   // ?license: LicenseObject,
     version: String
 }
 
-
-typedef DefinitionsObject = Array<Dynamic>; ////CHANGE HERE
-// PARTIAL OPENAPI
+//// !TODO : CHANGE DYNAMIC HERE
+typedef DefinitionsObject = Array<Dynamic>; 
+// PARTIAL OPENAPI END
 
 class Main {
   static function main() {
-    var dn = Node.__dirname;
     var specPath = './api.yaml';
     var yaml = Fs.readFileSync(specPath, 'utf8');
     var nativeObject : ApiDefinition = Yaml.parse(yaml, Parser.options().useObjects());

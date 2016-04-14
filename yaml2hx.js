@@ -84,7 +84,6 @@ List.prototype = {
 var Main = function() { };
 Main.__name__ = ["Main"];
 Main.main = function() {
-	var dn = __dirname;
 	var specPath = "./api.yaml";
 	var yaml1 = js_node_Fs.readFileSync(specPath,"utf8");
 	var nativeObject = yaml_Yaml.parse(yaml1,yaml_Parser.options().useObjects());
