@@ -95,7 +95,48 @@ class Main {
                 }
                 
                 final.push(res.join(''));
+                
 
+                //MAPPERS
+                res=[];
+                if (Reflect.hasField(content, 'x-dto-table')) {
+                    var tbName=Reflect.field(content,'x-dto-table');
+
+                    res.push('class '+def+'Mapper {\r\r');
+                    
+                    res.push('\tpublic static function map'+def+'s( i : Array<$def> , f : $def -> $def) : '+def+'s {\r');
+                    res.push('\t\treturn Lambda.map(i, function (j : $def) : $def {\r');
+                    res.push('\t\t\treturn map$def(j,f);\r');
+                    res.push('\t\t});\r');
+                    res.push('\t}\r\r');
+
+                    res.push('\tpublic static function map$def( i : DB__$tbName , f : $def -> $def) : $def {\r');
+                    res.push('\t\treturn f({\r\t\t');
+
+                    if (Reflect.hasField(content, 'properties')) {
+                             
+
+                        if (Reflect.hasField(content.properties, 'result')) {
+                        }
+                        else {
+
+                            var props = Reflect.fields(content.properties);
+                            var keys = [];
+                            Lambda.map(props,function(prop) {
+                                var propx = Reflect.field(content.properties,prop);
+                                var field = Reflect.field(propx,'x-dto-field');                            
+                                keys.push('$prop : i.$field');
+                            });                     
+                            res.push(keys.join(',\r\t\t\t'));
+                        }
+                    }
+
+                    res.push('\r\t\t});\r');
+                    res.push('\t}\r\r');
+
+                    res.push('}\r\r');
+                }
+                final.push(res.join(''));
             });
 
 

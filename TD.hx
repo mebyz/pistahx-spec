@@ -1,1 +1,1 @@
-typedef Users = List<User>;typedef User = {			id : Int,			name : String		};typedef SampleId = Int;typedef SampleKey = String;
+typedef Users = List<User>;typedef User = {			id : Int,			name : String		};typedef SampleId = Int;typedef SampleKey = String;

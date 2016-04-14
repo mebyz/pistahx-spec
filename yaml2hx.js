@@ -141,6 +141,35 @@ Main.main = function() {
 				res.push("" + type1 + ";\r");
 			}
 			$final.push(res.join(""));
+			res = [];
+			if(Object.prototype.hasOwnProperty.call(content,"x-dto-table")) {
+				var tbName = Reflect.field(content,"x-dto-table");
+				res.push("class " + def + "Mapper {\r\r");
+				res.push("\tpublic static function map" + def + ("s( i : Array<" + def + "> , f : " + def + " -> " + def + ") : ") + def + "s {\r");
+				res.push("\t\treturn Lambda.map(i, function (j : " + def + ") : " + def + " {\r");
+				res.push("\t\t\treturn map" + def + "(j,f);\r");
+				res.push("\t\t});\r");
+				res.push("\t}\r\r");
+				res.push("\tpublic static function map" + def + "( i : DB__" + tbName + " , f : " + def + " -> " + def + ") : " + def + " {\r");
+				res.push("\t\treturn f({\r\t\t");
+				if(Object.prototype.hasOwnProperty.call(content,"properties")) {
+					if(Object.prototype.hasOwnProperty.call(content.properties,"result")) {
+					} else {
+						var props1 = Reflect.fields(content.properties);
+						var keys1 = [];
+						Lambda.map(props1,function(prop1) {
+							var propx1 = Reflect.field(content.properties,prop1);
+							var field = Reflect.field(propx1,"x-dto-field");
+							keys1.push("" + prop1 + " : i." + field);
+						});
+						res.push(keys1.join(",\r\t\t\t"));
+					}
+				}
+				res.push("\r\t\t});\r");
+				res.push("\t}\r\r");
+				res.push("}\r\r");
+			}
+			$final.push(res.join(""));
 		});
 		js_node_Fs.writeFile(outPath,new js_node_buffer_Buffer($final.join("\r")),function(err) {
 			console.log("" + outPath + " file saved!");

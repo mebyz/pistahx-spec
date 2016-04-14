@@ -41,12 +41,15 @@ definitions:
         items:
           $ref: "#/definitions/User"
   User:
+    x-table: 'users'
     type: "object"
     properties:
       id:
+        x-dto-field: 'user_id'
         type: "integer"
         description: "Unique identifier representing a specific user"
       name:
+        x-dto-field: 'user_name'
         type: "string"
         description: "Name of user."
   SampleId:
