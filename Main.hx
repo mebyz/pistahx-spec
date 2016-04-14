@@ -57,7 +57,7 @@ class Main {
 
             var defs = nativeObject.definitions;
             var defsx = Reflect.fields(defs);
-            var final = [];
+            var final = ['import thx.core.*;\r\r'];
             Lambda.map(defsx,function(def) {
                 var res = [];
                 res.push('typedef $def = ');
@@ -68,7 +68,7 @@ class Main {
                          
 
                     if (Reflect.hasField(content.properties, 'result')) {
-                        res.push('List<' + Reflect.field(content.properties.result.items,"$ref").replace('#/definitions/','')+'>;\r');
+                        res.push('List<' + Reflect.field(content.properties.result.items,"$ref").replace('#/definitions/','')+'>;\r\r');
                     }
                     else {
                 
@@ -85,13 +85,13 @@ class Main {
 
                         res.push(keys.join(',\r\t\t\t'));
 
-                        res.push("\r\t\t};\r");
+                        res.push("\r\t\t};\r\r");
                     
                     }
                 }
                 else {
                     var type = getType(content);
-                    res.push('$type;\r');
+                    res.push('$type;\r\r');
                 }
                 
                 final.push(res.join(''));
@@ -99,19 +99,20 @@ class Main {
 
                 //MAPPERS
                 res=[];
-                if (Reflect.hasField(content, 'x-dto-table')) {
-                    var tbName=Reflect.field(content,'x-dto-table');
+                if (Reflect.hasField(content, 'x-dto-model')) {
+                    var tbName=Reflect.field(content,'x-dto-model');
 
                     res.push('class '+def+'Mapper {\r\r');
                     
-                    res.push('\tpublic static function map'+def+'s( i : Array<$def> , f : $def -> $def) : '+def+'s {\r');
-                    res.push('\t\treturn Lambda.map(i, function (j : $def) : $def {\r');
+                    res.push('\tpublic static function map'+def+'s( i : Array<DB__$tbName> , f : $def -> $def) : '+def+'s {\r');
+                    res.push('\t\treturn Lambda.map(i, function (j : DB__$tbName) : $def {\r');
                     res.push('\t\t\treturn map$def(j,f);\r');
                     res.push('\t\t});\r');
                     res.push('\t}\r\r');
 
                     res.push('\tpublic static function map$def( i : DB__$tbName , f : $def -> $def) : $def {\r');
-                    res.push('\t\treturn f({\r\t\t');
+                    res.push('\t\tvar imap = new thx.AnonymousMap(i);');
+                    res.push('\t\treturn f({\r\t\t\t');
 
                     if (Reflect.hasField(content, 'properties')) {
                              
@@ -124,8 +125,12 @@ class Main {
                             var keys = [];
                             Lambda.map(props,function(prop) {
                                 var propx = Reflect.field(content.properties,prop);
-                                var field = Reflect.field(propx,'x-dto-field');                            
-                                keys.push('$prop : i.$field');
+                                var field = Reflect.field(propx,'x-dto-field');
+                                 var r : EReg = ~/\./;
+                                if(r.match(field))
+                                    keys.push('$prop : imap.get(\'$field\')');
+                                else
+                                    keys.push('$prop : i.$field');
                             });                     
                             res.push(keys.join(',\r\t\t\t'));
                         }
@@ -142,7 +147,7 @@ class Main {
 
             Fs.writeFile(
                 outPath, 
-                new js.node.Buffer(final.join('\r')),
+                new js.node.Buffer(final.join('')),
                 function(err) {
                 console.log('$outPath file saved!');
                 }
