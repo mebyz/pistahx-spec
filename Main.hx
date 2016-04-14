@@ -40,6 +40,7 @@ class Main {
         return switch (type) {
             case 'string'   : 'String';
             case 'integer'  : 'Int';
+            case 'boolean'  : 'Bool';
             case _          : 'String';
         }
     }

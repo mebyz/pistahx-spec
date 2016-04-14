@@ -90,6 +90,8 @@ Main.getType = function(expr) {
 		return "String";
 	case "integer":
 		return "Int";
+	case "boolean":
+		return "Bool";
 	default:
 		return "String";
 	}
