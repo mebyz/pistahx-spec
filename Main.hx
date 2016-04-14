@@ -67,7 +67,7 @@ class Main {
                          
 
                     if (Reflect.hasField(content.properties, 'result')) {
-                        res.push('Array<' + Reflect.field(content.properties.result.items,"$ref").replace('#/definitions/','')+'>;\r');
+                        res.push('List<' + Reflect.field(content.properties.result.items,"$ref").replace('#/definitions/','')+'>;\r');
                     }
                     else {
                 

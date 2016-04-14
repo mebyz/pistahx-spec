@@ -122,7 +122,7 @@ Main.main = function() {
 			res.push("typedef " + def + " = ");
 			var content = Reflect.field(defs,def);
 			if(Object.prototype.hasOwnProperty.call(content,"properties")) {
-				if(Object.prototype.hasOwnProperty.call(content.properties,"result")) res.push("Array<" + Std.string(Reflect.field(content.properties.result.items,"$ref").replace("#/definitions/","")) + ">;\r"); else {
+				if(Object.prototype.hasOwnProperty.call(content.properties,"result")) res.push("List<" + Std.string(Reflect.field(content.properties.result.items,"$ref").replace("#/definitions/","")) + ">;\r"); else {
 					res.push("{\r\t\t\t");
 					var props = Reflect.fields(content.properties);
 					var keys = [];
