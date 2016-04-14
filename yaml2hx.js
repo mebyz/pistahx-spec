@@ -118,7 +118,6 @@ Main.main = function() {
 		var defsx = Reflect.fields(defs);
 		var res = [];
 		Lambda.map(defsx,function(def) {
-			console.log(def);
 			res.push(" typedef " + def + " = ");
 			var content = Reflect.field(defs,def);
 			if(Object.prototype.hasOwnProperty.call(content,"properties")) {
@@ -139,7 +138,6 @@ Main.main = function() {
 				res.push("" + type1 + ";");
 			}
 		});
-		console.log(res.join(""));
 		js_node_Fs.writeFile(outPath,new js_node_buffer_Buffer(res.join("")),function(err) {
 			console.log("" + outPath + " file saved!");
 		});

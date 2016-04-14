@@ -59,8 +59,6 @@ class Main {
             var res = [];
             Lambda.map(defsx,function(def) {
 
-                trace(def);
-                
                 res.push(' typedef $def = ');
                 var content = Reflect.field(defs, def);
                 
@@ -96,8 +94,6 @@ class Main {
                 }
             });
 
-
-            trace(res.join(''));
 
             Fs.writeFile(
                 outPath, 
