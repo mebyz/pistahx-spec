@@ -1,0 +1,19 @@
+{
+  "name": "yaml2hx",
+  "version": "1.0.0",
+  "description": "input=[yaml_filename] output=[haxe_filename] ./run.sh",
+  "main": "yaml2hx.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mebyz/yaml2hx.git"
+  },
+  "author": "emmanuel.botros@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mebyz/yaml2hx/issues"
+  },
+  "homepage": "https://github.com/mebyz/yaml2hx#readme"
+}
