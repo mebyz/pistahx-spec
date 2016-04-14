@@ -49,3 +49,9 @@ definitions:
       name:
         type: "string"
         description: "Name of user."
+  sampleId:
+    type: "integer"
+    description: "sample integer id"
+  sampleKey:
+    type: "string"
+    description: "sample string key"

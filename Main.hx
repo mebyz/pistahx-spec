@@ -58,28 +58,42 @@ class Main {
             var defsx = Reflect.fields(defs);
             var res = [];
             Lambda.map(defsx,function(def) {
-                res.push(' typedef $def = ');
-                var content = Reflect.field(defs,def);
+
+                trace(def);
                 
-                if (Reflect.hasField(content.properties, 'result')){
-                    res.push('Array<' + Reflect.field(content.properties.result.items,"$ref").replace('#/definitions/','')+'>;');
+                res.push(' typedef $def = ');
+                var content = Reflect.field(defs, def);
+                
+
+                if (Reflect.hasField(content, 'properties')) {
+                         
+
+                    if (Reflect.hasField(content.properties, 'result')) {
+                        res.push('Array<' + Reflect.field(content.properties.result.items,"$ref").replace('#/definitions/','')+'>;');
+                    }
+                    else {
+                
+
+                        res.push('{');
+
+                        var props = Reflect.fields(content.properties);
+                        var keys = [];
+                        Lambda.map(props,function(prop) {
+                            var propx = Reflect.field(content.properties,prop);
+                            var type = getType(propx);
+                            keys.push('$prop : $type');
+                        }); 
+
+                        res.push(keys.toString());
+
+                        res.push("}; ");
+                    
+                    }
                 }
                 else {
-
-                    res.push('{');
-
-                    var props = Reflect.fields(content.properties);
-                    var keys = [];
-                    Lambda.map(props,function(prop) {
-                        var propx = Reflect.field(content.properties,prop);
-                        var type = getType(propx);
-                        keys.push('$prop : $type');
-                    }); 
-
-                    res.push(keys.toString());
-
-                    res.push("}; ");
-                }           
+                    var type = getType(content);
+                    res.push('$type;');
+                }
             });
 
 

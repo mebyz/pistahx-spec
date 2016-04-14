@@ -118,19 +118,25 @@ Main.main = function() {
 		var defsx = Reflect.fields(defs);
 		var res = [];
 		Lambda.map(defsx,function(def) {
+			console.log(def);
 			res.push(" typedef " + def + " = ");
 			var content = Reflect.field(defs,def);
-			if(Object.prototype.hasOwnProperty.call(content.properties,"result")) res.push("Array<" + Std.string(Reflect.field(content.properties.result.items,"$ref").replace("#/definitions/","")) + ">;"); else {
-				res.push("{");
-				var props = Reflect.fields(content.properties);
-				var keys = [];
-				Lambda.map(props,function(prop) {
-					var propx = Reflect.field(content.properties,prop);
-					var type = Main.getType(propx);
-					keys.push("" + prop + " : " + type);
-				});
-				res.push(keys.toString());
-				res.push("}; ");
+			if(Object.prototype.hasOwnProperty.call(content,"properties")) {
+				if(Object.prototype.hasOwnProperty.call(content.properties,"result")) res.push("Array<" + Std.string(Reflect.field(content.properties.result.items,"$ref").replace("#/definitions/","")) + ">;"); else {
+					res.push("{");
+					var props = Reflect.fields(content.properties);
+					var keys = [];
+					Lambda.map(props,function(prop) {
+						var propx = Reflect.field(content.properties,prop);
+						var type = Main.getType(propx);
+						keys.push("" + prop + " : " + type);
+					});
+					res.push(keys.toString());
+					res.push("}; ");
+				}
+			} else {
+				var type1 = Main.getType(content);
+				res.push("" + type1 + ";");
 			}
 		});
 		console.log(res.join(""));
