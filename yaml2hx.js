@@ -89,22 +89,15 @@ Main.main = function() {
 	var yaml1 = js_node_Fs.readFileSync(specPath,"utf8");
 	var nativeObject = yaml_Yaml.parse(yaml1,yaml_Parser.options().useObjects());
 	var defs = nativeObject.definitions;
-	var k1 = Type.getClassName(Type.getClass(nativeObject.swagger));
-	console.log("yaml key swagger is a " + k1 + " :");
-	console.log(nativeObject.swagger);
-	var k2 = Type.getClassName(Type.getClass(Reflect.field(nativeObject.info,"x-testfloatval")));
-	console.log("yaml key info is a " + k2);
-	console.log(Reflect.field(nativeObject.info,"x-testfloatval"));
-	var k3 = Type.getClassName(Type.getClass(nativeObject.info.title));
-	console.log("yaml key info.title is a " + k3);
-	console.log(nativeObject.info.title);
 	var defsx = Reflect.fields(defs);
 	Lambda.map(defsx,function(def) {
-		console.log(def);
+		console.log("typedef " + def + " = ");
 		var content = Reflect.field(defs,def);
-		console.log(content.properties);
+		if(Object.prototype.hasOwnProperty.call(content.properties,"result")) console.log("Array<" + Std.string(Reflect.field(content.properties.result.items,"$ref").replace("#/definitions/","")) + ">;"); else {
+			console.log("{");
+			console.log("};");
+		}
 	});
-	console.log("\ntypedef root = {\n swagger : " + k1 + ";\n infos : {\n   title : " + k3 + ";\n }\n}");
 };
 Math.__name__ = ["Math"];
 var Reflect = function() { };

@@ -51,33 +51,25 @@ class Main {
   
     var defs = nativeObject.definitions;
 
-    var k1=Type.getClassName(Type.getClass(nativeObject.swagger));
-    trace('yaml key swagger is a $k1 :');
-    trace(nativeObject.swagger);
-
-    var k2=Type.getClassName(Type.getClass(Reflect.field(nativeObject.info,'x-testfloatval')));
-    trace('yaml key info is a $k2');
-    trace(Reflect.field(nativeObject.info,'x-testfloatval'));
-
-    var k3=Type.getClassName(Type.getClass(nativeObject.info.title));
-    trace('yaml key info.title is a $k3');
-    trace(nativeObject.info.title);
-
     var defsx = Reflect.fields(defs);
+
     Lambda.map(defsx,function(def) {
-        trace(def);
+        trace('typedef $def = ');
         var content = Reflect.field(defs,def);
-        trace(content.properties);
+        
+        if (Reflect.hasField(content.properties, 'result')){
+            trace('Array<' + Reflect.field(content.properties.result.items,"$ref").replace('#/definitions/','')+'>;');
+        }
+        else {
+
+         trace('{');
+         ////
+
+         ////
+         trace('};');
+        }           
     });
 
-
-    trace('
-typedef root = {
- swagger : $k1;
- infos : {
-   title : $k3;
- }
-}');
 
   }
 }
