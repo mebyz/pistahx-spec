@@ -116,13 +116,14 @@ Main.main = function() {
 		var nativeObject = yaml_Yaml.parse(yaml1,yaml_Parser.options().useObjects());
 		var defs = nativeObject.definitions;
 		var defsx = Reflect.fields(defs);
-		var res = [];
+		var $final = [];
 		Lambda.map(defsx,function(def) {
-			res.push(" typedef " + def + " = ");
+			var res = [];
+			res.push("typedef " + def + " = ");
 			var content = Reflect.field(defs,def);
 			if(Object.prototype.hasOwnProperty.call(content,"properties")) {
-				if(Object.prototype.hasOwnProperty.call(content.properties,"result")) res.push("Array<" + Std.string(Reflect.field(content.properties.result.items,"$ref").replace("#/definitions/","")) + ">;"); else {
-					res.push("{");
+				if(Object.prototype.hasOwnProperty.call(content.properties,"result")) res.push("Array<" + Std.string(Reflect.field(content.properties.result.items,"$ref").replace("#/definitions/","")) + ">;\r"); else {
+					res.push("{\r\t\t\t");
 					var props = Reflect.fields(content.properties);
 					var keys = [];
 					Lambda.map(props,function(prop) {
@@ -130,15 +131,16 @@ Main.main = function() {
 						var type = Main.getType(propx);
 						keys.push("" + prop + " : " + type);
 					});
-					res.push(keys.toString());
-					res.push("}; ");
+					res.push(keys.join(",\r\t\t\t"));
+					res.push("\r\t\t};\r");
 				}
 			} else {
 				var type1 = Main.getType(content);
-				res.push("" + type1 + ";");
+				res.push("" + type1 + ";\r");
 			}
+			$final.push(res.join(""));
 		});
-		js_node_Fs.writeFile(outPath,new js_node_buffer_Buffer(res.join("")),function(err) {
+		js_node_Fs.writeFile(outPath,new js_node_buffer_Buffer($final.join("\r")),function(err) {
 			console.log("" + outPath + " file saved!");
 		});
 	} else console.log("missing one or more parameters ( usage : input=[yaml_filename] output=[haxe_filename] ./run.sh ) ");

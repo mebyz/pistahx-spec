@@ -56,10 +56,10 @@ class Main {
 
             var defs = nativeObject.definitions;
             var defsx = Reflect.fields(defs);
-            var res = [];
+            var final = [];
             Lambda.map(defsx,function(def) {
-
-                res.push(' typedef $def = ');
+                var res = [];
+                res.push('typedef $def = ');
                 var content = Reflect.field(defs, def);
                 
 
@@ -67,12 +67,12 @@ class Main {
                          
 
                     if (Reflect.hasField(content.properties, 'result')) {
-                        res.push('Array<' + Reflect.field(content.properties.result.items,"$ref").replace('#/definitions/','')+'>;');
+                        res.push('Array<' + Reflect.field(content.properties.result.items,"$ref").replace('#/definitions/','')+'>;\r');
                     }
                     else {
                 
 
-                        res.push('{');
+                        res.push('{\r\t\t\t');
 
                         var props = Reflect.fields(content.properties);
                         var keys = [];
@@ -82,22 +82,25 @@ class Main {
                             keys.push('$prop : $type');
                         }); 
 
-                        res.push(keys.toString());
+                        res.push(keys.join(',\r\t\t\t'));
 
-                        res.push("}; ");
+                        res.push("\r\t\t};\r");
                     
                     }
                 }
                 else {
                     var type = getType(content);
-                    res.push('$type;');
+                    res.push('$type;\r');
                 }
+                
+                final.push(res.join(''));
+
             });
 
 
             Fs.writeFile(
                 outPath, 
-                new js.node.Buffer(res.join('')),
+                new js.node.Buffer(final.join('\r')),
                 function(err) {
                 console.log('$outPath file saved!');
                 }
