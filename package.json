@@ -1,5 +1,5 @@
 {
-  "name": "yaml2hx",
+  "name": "pistahx-spec",
   "version": "1.0.0",
   "description": "input=[yaml_filename] output=[haxe_filename] ./run.sh",
   "main": "yaml2hx.js",
@@ -8,12 +8,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mebyz/yaml2hx.git"
+    "url": "git+https://github.com/mebyz/pistahx-spec.git"
   },
   "author": "emmanuel.botros@gmail.com",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/mebyz/yaml2hx/issues"
+    "url": "https://github.com/mebyz/pistahx-spec/issues"
   },
-  "homepage": "https://github.com/mebyz/yaml2hx#readme"
+  "homepage": "https://github.com/mebyz/pistahx-spec#readme"
 }
