@@ -57,6 +57,16 @@ Lambda.map = function(it,f) {
 	}
 	return l;
 };
+Lambda.mapi = function(it,f) {
+	var l = new List();
+	var i = 0;
+	var $it0 = $iterator(it)();
+	while( $it0.hasNext() ) {
+		var x = $it0.next();
+		l.add(f(i++,x));
+	}
+	return l;
+};
 Lambda.has = function(it,elt) {
 	var $it0 = $iterator(it)();
 	while( $it0.hasNext() ) {
@@ -81,6 +91,11 @@ List.prototype = {
 	}
 	,__class__: List
 };
+var Spec = { __ename__ : true, __constructs__ : ["None","ApiDefinition"] };
+Spec.None = ["None",0];
+Spec.None.toString = $estr;
+Spec.None.__enum__ = Spec;
+Spec.ApiDefinition = function(_keys,values) { var $x = ["ApiDefinition",1,_keys,values]; $x.__enum__ = Spec; $x.toString = $estr; return $x; };
 var Main = function() { };
 Main.__name__ = ["Main"];
 Main.getType = function(expr) {
@@ -95,6 +110,34 @@ Main.getType = function(expr) {
 	default:
 		return "String";
 	}
+};
+Main.safeParse = function(yaml1) {
+	var spec = Main.safeParseTry(yaml_Yaml.parse(yaml1));
+	switch(spec[1]) {
+	case 1:
+		var values = spec[3];
+		var keys = spec[2];
+		console.log("ok spec");
+		break;
+	case 0:
+		console.log("wrong spec");
+		break;
+	}
+};
+Main.safeParseTry = function(yaml) {
+	if(Object.prototype.hasOwnProperty.call(yaml,"_keys") && Object.prototype.hasOwnProperty.call(yaml,"values")) {
+		Lambda.mapi(yaml._keys,function(i,key) {
+			if(!Object.prototype.hasOwnProperty.call(yaml.values[i],"_keys")) {
+				console.log(key);
+				console.log(yaml.values[i]);
+			} else {
+				console.log(key);
+				Main.safeParseTry({ _keys : yaml.values[i]._keys, values : yaml.values[i].values});
+			}
+		});
+		return Spec.ApiDefinition(yaml._keys,yaml.values);
+	}
+	return Spec.None;
 };
 Main.main = function() {
 	if((function($this) {
@@ -116,6 +159,7 @@ Main.main = function() {
 		outPath = this4.output;
 		var yaml1 = js_node_Fs.readFileSync(specPath,"utf8");
 		var nativeObject = yaml_Yaml.parse(yaml1,yaml_Parser.options().useObjects());
+		Main.safeParse(yaml1);
 		var defs = nativeObject.definitions;
 		var defsx = Reflect.fields(defs);
 		var $final = ["import thx.core.*;\r\r"];

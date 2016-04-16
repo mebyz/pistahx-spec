@@ -6,14 +6,20 @@ import yaml.util.ObjectMap;
 import yaml.type.YInt;
 import js.Node;
 import js.Node.*;
+import haxe.ds.*;
+
+using  haxe.ds.Option;
 
 // PARTIAL OPENAPI START
-typedef ApiDefinition = {
+//typedef ApiDefinition={_keys:Array<Dynamic>, values:Array<Dynamic> };
+//typedef ApiDefinition2={_keys:Array<Dynamic>, values:Array<Dynamic> ,d:Int};
+
+typedef ApiDefinitionRootKeys = {
     swagger: String,
     info: InfoObject,
-    ?host: String,
-    ?basePath: String,
-    ?schemes: Array<String>,
+    host: String,
+    basePath: String,
+    schemes: Array<String>,
     definitions: Array<Map<String,Dynamic>>
 }
 
@@ -31,6 +37,10 @@ typedef DefinitionsObject = Array<Dynamic>;
 // PARTIAL OPENAPI END
 
 
+enum Spec {
+    None;
+    ApiDefinition(_keys:Array<Dynamic>, values:Array<Dynamic>);
+}
 
 class Main {
 
@@ -45,6 +55,36 @@ class Main {
         }
     }
 
+     static public function safeParse(yaml : String) {
+
+       var spec = safeParseTry(Yaml.parse(yaml));
+
+       switch(spec) {
+            case ApiDefinition(keys,values) : trace('ok spec');
+            case None : trace('wrong spec');
+        }
+       
+            
+    }
+
+     static public function safeParseTry(yaml : Dynamic) : Spec{
+        if (Reflect.hasField(yaml,'_keys') && Reflect.hasField(yaml,'values')) {
+            Lambda.mapi(yaml._keys,function(i,key){
+                    if (!Reflect.hasField(yaml.values[i],'_keys')) {
+                        trace(key);
+                        trace(yaml.values[i]);
+                    }
+                    else {
+                        trace(key);
+                        safeParseTry({_keys:yaml.values[i]._keys,values:yaml.values[i].values});
+                    }
+                });
+            return ApiDefinition(yaml._keys,yaml.values);   
+        }
+
+        return None;         
+    }
+
     static function main() {
 
         if(process.env.exists("input") && process.env.exists("output")) {
@@ -53,7 +93,11 @@ class Main {
             var outPath     = process.env.get("output");
 
             var yaml = Fs.readFileSync(specPath, 'utf8');
-            var nativeObject : ApiDefinition = Yaml.parse(yaml, Parser.options().useObjects());
+            var nativeObject = Yaml.parse(yaml, Parser.options().useObjects());
+
+
+            safeParse(yaml);
+
 
             var defs = nativeObject.definitions;
             var defsx = Reflect.fields(defs);
