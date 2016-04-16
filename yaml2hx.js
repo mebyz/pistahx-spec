@@ -128,6 +128,11 @@ Main.safeParseTry = function(yaml) {
 	if(Object.prototype.hasOwnProperty.call(yaml,"_keys") && Object.prototype.hasOwnProperty.call(yaml,"values")) {
 		Lambda.mapi(yaml._keys,function(i,key) {
 			if(!Object.prototype.hasOwnProperty.call(yaml.values[i],"_keys")) {
+				switch(key) {
+				case "swagger":
+					console.log("do something");
+					break;
+				}
 				console.log(key);
 				console.log(yaml.values[i]);
 			} else {

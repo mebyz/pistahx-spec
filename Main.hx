@@ -71,6 +71,9 @@ class Main {
         if (Reflect.hasField(yaml,'_keys') && Reflect.hasField(yaml,'values')) {
             Lambda.mapi(yaml._keys,function(i,key){
                     if (!Reflect.hasField(yaml.values[i],'_keys')) {
+                        switch (key) {
+                            case 'swagger': trace('do something');
+                        }
                         trace(key);
                         trace(yaml.values[i]);
                     }
