@@ -91,11 +91,11 @@ List.prototype = {
 	}
 	,__class__: List
 };
-var Spec = { __ename__ : true, __constructs__ : ["None","ApiDefinition"] };
-Spec.None = ["None",0];
-Spec.None.toString = $estr;
-Spec.None.__enum__ = Spec;
-Spec.ApiDefinition = function(_keys,values) { var $x = ["ApiDefinition",1,_keys,values]; $x.__enum__ = Spec; $x.toString = $estr; return $x; };
+var ApiCheck = { __ename__ : true, __constructs__ : ["None","ApiObject"] };
+ApiCheck.None = ["None",0];
+ApiCheck.None.toString = $estr;
+ApiCheck.None.__enum__ = ApiCheck;
+ApiCheck.ApiObject = function(def) { var $x = ["ApiObject",1,def]; $x.__enum__ = ApiCheck; $x.toString = $estr; return $x; };
 var Main = function() { };
 Main.__name__ = ["Main"];
 Main.getType = function(expr) {
@@ -111,12 +111,21 @@ Main.getType = function(expr) {
 		return "String";
 	}
 };
+Main.validateSwagger = function(val) {
+	var _g = Type.getClass(val);
+	switch(_g) {
+	case String:
+		return val;
+	default:
+		throw new js__$Boot_HaxeError("validateSwagger Error : YAML 'swagger' key  should be of type ApiVersion (String)");
+	}
+};
 Main.safeParse = function(yaml1) {
 	var spec = Main.safeParseTry(yaml_Yaml.parse(yaml1));
+	console.log(spec);
 	switch(spec[1]) {
 	case 1:
-		var values = spec[3];
-		var keys = spec[2];
+		var d = spec[2];
 		console.log("ok spec");
 		break;
 	case 0:
@@ -126,23 +135,21 @@ Main.safeParse = function(yaml1) {
 };
 Main.safeParseTry = function(yaml) {
 	if(Object.prototype.hasOwnProperty.call(yaml,"_keys") && Object.prototype.hasOwnProperty.call(yaml,"values")) {
+		var v = { };
 		Lambda.mapi(yaml._keys,function(i,key) {
-			if(!Object.prototype.hasOwnProperty.call(yaml.values[i],"_keys")) {
-				switch(key) {
-				case "swagger":
-					console.log("do something");
-					break;
-				}
-				console.log(key);
-				console.log(yaml.values[i]);
+			var val = yaml.values[i];
+			if(!Object.prototype.hasOwnProperty.call(val,"_keys")) switch(key) {
+			case "swagger":
+				v.swagger = Main.validateSwagger(val);
+				break;
+			default:
+				v[key] = val;
 			} else {
-				console.log(key);
-				Main.safeParseTry({ _keys : yaml.values[i]._keys, values : yaml.values[i].values});
 			}
 		});
-		return Spec.ApiDefinition(yaml._keys,yaml.values);
+		return ApiCheck.ApiObject(v);
 	}
-	return Spec.None;
+	return ApiCheck.None;
 };
 Main.main = function() {
 	if((function($this) {

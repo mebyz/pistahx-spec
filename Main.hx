@@ -9,38 +9,62 @@ import js.Node.*;
 import haxe.ds.*;
 
 using  haxe.ds.Option;
-
 // PARTIAL OPENAPI START
-//typedef ApiDefinition={_keys:Array<Dynamic>, values:Array<Dynamic> };
-//typedef ApiDefinition2={_keys:Array<Dynamic>, values:Array<Dynamic> ,d:Int};
-
-typedef ApiDefinitionRootKeys = {
-    swagger: String,
-    info: InfoObject,
-    host: String,
-    basePath: String,
-    schemes: Array<String>,
-    definitions: Array<Map<String,Dynamic>>
-}
-
-typedef MimeTypes = Array<String>;
-
-typedef InfoObject = {
-    title: String,
-    ?description: String,
-    termsOfService: String,
-    version: String
-}
-
-//// !TODO : CHANGE DYNAMIC HERE
-typedef DefinitionsObject = Array<Dynamic>; 
-// PARTIAL OPENAPI END
 
 
-enum Spec {
+enum ApiCheck {
     None;
-    ApiDefinition(_keys:Array<Dynamic>, values:Array<Dynamic>);
+    ApiObject(def:ApiDefinition);
 }
+
+
+typedef ApiDefinition = {
+    swagger: ApiVersion
+}
+
+typedef ApiVersion = String;
+
+/*
+export interface ApiDefinition {
+    swagger: string
+    info: InfoObject
+    host?: string
+    basePath?: string
+    schemes?: string[]
+    consumes?: MimeTypes
+    produces?: MimeTypes
+    paths: PathsObject
+    definitions?: DefinitionsObject
+    parameters?: ParametersDefinitionsObject
+    responses?: ResponsesDefinitionsObject
+    securityDefinitions?: SecurityDefinitionsObject
+    security?: SecurityRequirementObject[]
+    tags?: TagObject[]
+    externalDocs?: ExternalDocumentationObject
+}
+
+type MimeTypes = string[]
+
+export interface InfoObject {
+    title: string
+    description?: string
+    termsOfService?: string
+    contact?: ContactObject
+    license?: LicenseObject
+    version: string
+}
+
+export interface ContactObject {
+    name?: string
+    url?: string
+    email?: string
+}
+
+export interface LicenseObject {
+    name: string
+    url?: string
+}
+*/
 
 class Main {
 
@@ -55,36 +79,51 @@ class Main {
         }
     }
 
-     static public function safeParse(yaml : String) {
 
-       var spec = safeParseTry(Yaml.parse(yaml));
 
-       switch(spec) {
-            case ApiDefinition(keys,values) : trace('ok spec');
-            case None : trace('wrong spec');
+
+
+
+
+
+
+
+
+    static public function validateSwagger(val : Dynamic) {
+        return switch (Type.getClass(val)) {
+            case String: val;
+            case _ : throw "validateSwagger Error : YAML 'swagger' key  should be of type ApiVersion (String)";
         }
-       
-            
     }
 
-     static public function safeParseTry(yaml : Dynamic) : Spec{
+    static public function safeParse(yaml : String) {
+
+       var spec = safeParseTry(Yaml.parse(yaml));
+       trace(spec);
+       switch(spec) {
+            case ApiObject(d) : trace('ok spec');
+            case None : trace('wrong spec');
+        }   
+    }
+
+    static public function safeParseTry(yaml : Dynamic) : ApiCheck {
         if (Reflect.hasField(yaml,'_keys') && Reflect.hasField(yaml,'values')) {
+            var v = untyped {};
             Lambda.mapi(yaml._keys,function(i,key){
-                    if (!Reflect.hasField(yaml.values[i],'_keys')) {
+                    var val = yaml.values[i];
+                    if (!Reflect.hasField(val,'_keys')) {
                         switch (key) {
-                            case 'swagger': trace('do something');
+                            case 'swagger': v.swagger = validateSwagger(val);
+                            case _: Reflect.setField(v,key,val);
                         }
-                        trace(key);
-                        trace(yaml.values[i]);
                     }
                     else {
-                        trace(key);
-                        safeParseTry({_keys:yaml.values[i]._keys,values:yaml.values[i].values});
+                        //trace(key);
+                        //safeParseTry({_keys:yaml.values[i]._keys,values:yaml.values[i].values});
                     }
                 });
-            return ApiDefinition(yaml._keys,yaml.values);   
+            return ApiObject(v);   
         }
-
         return None;         
     }
 
