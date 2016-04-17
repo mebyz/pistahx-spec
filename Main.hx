@@ -17,12 +17,15 @@ enum ApiCheck {
     ApiObject(def:ApiDefinition);
 }
 
-
 typedef ApiDefinition = {
-    swagger: ApiVersion
+    swagger : ApiVersion,
+    host    : ApiHost,
+    basePath: ApiBasePath,
 }
 
-typedef ApiVersion = String;
+typedef ApiVersion  = String;
+typedef ApiHost     = String;
+typedef ApiBasePath = String;
 
 /*
 export interface ApiDefinition {
@@ -89,10 +92,24 @@ class Main {
 
 
 
-    static public function validateSwagger(val : Dynamic) : ApiVersion {
+    static public function checkApiVersion(val : Dynamic) : ApiVersion {
         return switch (Type.getClass(val)) {
             case ApiVersion: val;
             case _ : throw "validateSwagger Error : YAML 'swagger' key  should be of type ApiVersion (String)";
+        }
+    }
+
+    static public function checkApiHost(val : Dynamic) : ApiHost {
+        return switch (Type.getClass(val)) {
+            case ApiHost: val;
+            case _ : throw "validateSwagger Error : YAML 'host' key  should be of type ApiHost (String)";
+        }
+    }
+
+    static public function checkApiBasePath(val : Dynamic) : ApiBasePath {
+        return switch (Type.getClass(val)) {
+            case ApiBasePath: val;
+            case _ : throw "validateSwagger Error : YAML 'basePath' key  should be of type ApiBasePath (String)";
         }
     }
 
@@ -113,8 +130,15 @@ class Main {
                     var val = yaml.values[i];
                     if (!Reflect.hasField(val,'_keys')) {
                         switch (key) {
-                            case 'swagger': v.swagger = validateSwagger(val);
-                            case _: trace('skip');//Reflect.setField(v,key,val);
+                            case 'swagger'  : v.swagger  = checkApiVersion(val);
+                            case 'host'     : v.host     = checkApiHost(val);
+                            case 'basePath' : v.basePath = checkApiBasePath(val);
+                            case _: trace('skip');
+                                    /*switch (Type.getClass(val)) {
+                                        case _ : trace(key);
+                                                 trace(val);
+                                                 trace(Type.getClass(val));
+                                    }*/
                         }
                     }
                     else {

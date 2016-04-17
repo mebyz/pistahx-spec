@@ -111,13 +111,31 @@ Main.getType = function(expr) {
 		return "String";
 	}
 };
-Main.validateSwagger = function(val) {
+Main.checkApiVersion = function(val) {
 	var _g = Type.getClass(val);
 	switch(_g) {
 	case String:
 		return val;
 	default:
 		throw new js__$Boot_HaxeError("validateSwagger Error : YAML 'swagger' key  should be of type ApiVersion (String)");
+	}
+};
+Main.checkApiHost = function(val) {
+	var _g = Type.getClass(val);
+	switch(_g) {
+	case String:
+		return val;
+	default:
+		throw new js__$Boot_HaxeError("validateSwagger Error : YAML 'host' key  should be of type ApiHost (String)");
+	}
+};
+Main.checkApiBasePath = function(val) {
+	var _g = Type.getClass(val);
+	switch(_g) {
+	case String:
+		return val;
+	default:
+		throw new js__$Boot_HaxeError("validateSwagger Error : YAML 'basePath' key  should be of type ApiBasePath (String)");
 	}
 };
 Main.safeParse = function(yaml1) {
@@ -140,7 +158,13 @@ Main.safeParseTry = function(yaml) {
 			var val = yaml.values[i];
 			if(!Object.prototype.hasOwnProperty.call(val,"_keys")) switch(key) {
 			case "swagger":
-				v.swagger = Main.validateSwagger(val);
+				v.swagger = Main.checkApiVersion(val);
+				break;
+			case "host":
+				v.host = Main.checkApiHost(val);
+				break;
+			case "basePath":
+				v.basePath = Main.checkApiBasePath(val);
 				break;
 			default:
 				console.log("skip");
