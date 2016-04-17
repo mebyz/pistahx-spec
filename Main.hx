@@ -91,7 +91,7 @@ class Main {
 
     static public function validateSwagger(val : Dynamic) : ApiVersion {
         return switch (Type.getClass(val)) {
-            case String: val;
+            case ApiVersion: val;
             case _ : throw "validateSwagger Error : YAML 'swagger' key  should be of type ApiVersion (String)";
         }
     }
