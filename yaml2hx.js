@@ -143,7 +143,7 @@ Main.safeParseTry = function(yaml) {
 				v.swagger = Main.validateSwagger(val);
 				break;
 			default:
-				v[key] = val;
+				console.log("skip");
 			} else {
 			}
 		});

@@ -89,7 +89,7 @@ class Main {
 
 
 
-    static public function validateSwagger(val : Dynamic) {
+    static public function validateSwagger(val : Dynamic) : ApiVersion {
         return switch (Type.getClass(val)) {
             case String: val;
             case _ : throw "validateSwagger Error : YAML 'swagger' key  should be of type ApiVersion (String)";
@@ -114,7 +114,7 @@ class Main {
                     if (!Reflect.hasField(val,'_keys')) {
                         switch (key) {
                             case 'swagger': v.swagger = validateSwagger(val);
-                            case _: Reflect.setField(v,key,val);
+                            case _: trace('skip');//Reflect.setField(v,key,val);
                         }
                     }
                     else {
