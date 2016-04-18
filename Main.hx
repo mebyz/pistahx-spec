@@ -116,7 +116,7 @@ class Main {
     static public function safeParse(yaml : String) {
 
        var spec = safeParseTry(Yaml.parse(yaml));
-       trace(spec);
+       //trace(spec);
        switch(spec) {
             case ApiObject(d) : trace('ok spec');
             case None : trace('wrong spec');
@@ -162,7 +162,7 @@ class Main {
             var nativeObject = Yaml.parse(yaml, Parser.options().useObjects());
 
 
-            safeParse(yaml);
+            //safeParse(yaml);
 
 
             var defs = nativeObject.definitions;

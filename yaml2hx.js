@@ -140,7 +140,6 @@ Main.checkApiBasePath = function(val) {
 };
 Main.safeParse = function(yaml1) {
 	var spec = Main.safeParseTry(yaml_Yaml.parse(yaml1));
-	console.log(spec);
 	switch(spec[1]) {
 	case 1:
 		var d = spec[2];
@@ -195,7 +194,6 @@ Main.main = function() {
 		outPath = this4.output;
 		var yaml1 = js_node_Fs.readFileSync(specPath,"utf8");
 		var nativeObject = yaml_Yaml.parse(yaml1,yaml_Parser.options().useObjects());
-		Main.safeParse(yaml1);
 		var defs = nativeObject.definitions;
 		var defsx = Reflect.fields(defs);
 		var $final = ["import thx.core.*;\r\r"];
