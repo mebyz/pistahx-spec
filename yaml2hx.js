@@ -242,7 +242,7 @@ Main.main = function() {
 							var ftype = Reflect.field(propx1,"x-dto-field-type");
 							var r = new EReg("\\.","");
 							if(r.match(field)) {
-								if(ftype == "Int") keys1.push("" + prop1 + " : Std.ParseInt(imap.get('" + field + "'))"); else keys1.push("" + prop1 + " : imap.get('" + field + "')");
+								if(ftype == "Int") keys1.push("" + prop1 + " : Std.parseInt(imap.get('" + field + "'))"); else keys1.push("" + prop1 + " : imap.get('" + field + "')");
 							} else keys1.push("" + prop1 + " : i." + field);
 						});
 						res.push(keys1.join(",\r\t\t\t"));

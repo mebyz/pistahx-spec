@@ -240,7 +240,7 @@ class Main {
                                  var r : EReg = ~/\./;
                                 if(r.match(field)){
                                     if (ftype == 'Int')
-					keys.push('$prop : Std.ParseInt(imap.get(\'$field\'))');
+					keys.push('$prop : Std.parseInt(imap.get(\'$field\'))');
 				    else 
 					keys.push('$prop : imap.get(\'$field\')');
 				}
