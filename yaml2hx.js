@@ -239,8 +239,11 @@ Main.main = function() {
 						Lambda.map(props1,function(prop1) {
 							var propx1 = Reflect.field(content.properties,prop1);
 							var field = Reflect.field(propx1,"x-dto-field");
+							var ftype = Reflect.field(propx1,"x-dto-field-type");
 							var r = new EReg("\\.","");
-							if(r.match(field)) keys1.push("" + prop1 + " : imap.get('" + field + "')"); else keys1.push("" + prop1 + " : i." + field);
+							if(r.match(field)) {
+								if(ftype == "Int") keys1.push("" + prop1 + " : Std.ParseInt(imap.get('" + field + "'))"); else keys1.push("" + prop1 + " : imap.get('" + field + "')");
+							} else keys1.push("" + prop1 + " : i." + field);
 						});
 						res.push(keys1.join(",\r\t\t\t"));
 					}

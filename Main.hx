@@ -236,9 +236,14 @@ class Main {
                             Lambda.map(props,function(prop) {
                                 var propx = Reflect.field(content.properties,prop);
                                 var field = Reflect.field(propx,'x-dto-field');
+				var ftype = Reflect.field(propx,'x-dto-field-type');
                                  var r : EReg = ~/\./;
-                                if(r.match(field))
-                                    keys.push('$prop : imap.get(\'$field\')');
+                                if(r.match(field)){
+                                    if (ftype == 'Int')
+					keys.push('$prop : Std.ParseInt(imap.get(\'$field\'))');
+				    else 
+					keys.push('$prop : imap.get(\'$field\')');
+				}
                                 else
                                     keys.push('$prop : i.$field');
                             });                     
