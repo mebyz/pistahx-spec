@@ -1,6 +1,6 @@
 {
   "name": "pistahx-spec",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "input=[yaml_filename] output=[haxe_filename] ./run.sh",
   "main": "yaml2hx.js",
   "scripts": {
