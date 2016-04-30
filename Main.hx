@@ -276,50 +276,14 @@ class Main {
                      if (args.ttl != '0')     
                         res.push('cacheo.route({ expire: '+args.ttl+' }),\r\t\t');
                      else
-                        res.push('function(req, res, next) { next(); },\r\t\t');
+                        res.push('function(req: PistahxRequest, res: Response, next: MiddlewareNext) { next(); },\r\t\t');
 
                     res.push('untyped function(req : PistahxRequest, res : Response){\r\t\t');
-                    res.push('Business.$opMethod(db, req, res, dbcacher, cacheo, '+haxe.Json.stringify(extra)+').then(function(out) { res.send(out); });\r');
+                    res.push('Business.$opMethod(db, req, res, dbcacher, cacheo, '+haxe.Json.stringify(extra)+').then(function(out) { res.send(out); })\r');
                     res.push('});');
                     final.push(res.join(''));
                 });
 
-                
-                /*                    var defs = nativeObject.paths;
-                var defsx = Reflect.fields(defs);
-                var final = [''];    
- 
-                Lambda.map(defsx,function(def) {
-                    var res = [];
-                    var content = Reflect.field(defs, def);
-                  
-                    var contentx = Reflect.fields(content);
-
-                    //trace(content);
-                    Lambda.map(contentx,function(verb) {
-                                var verbargs = Reflect.field(content,verb);
-                                //trace(verbargs);
-                                var operationId = Reflect.field(verbargs,'operationId');
-                                if (Reflect.hasField(verbargs, 'summary')) {
-                                    var props = Reflect.field(verbargs,'summary');
-                                    var r = ~/'/g;
-                                    var propsJson = haxe.Json.parse(r.replace(props,'"')); 
-                                     res.push('\r\rapp.'+verb+'( \'$def\',\r\t\t');
-
-                                     if (propsJson.ttl != '0')     
-                                        res.push('cacheo.route({ expire: '+propsJson.ttl+' }),\r\t\t');
-                                     else
-                                        res.push('function(req, res, next) { next(); },\r\t\t');
-
-                                    res.push('untyped function(req : PistahxRequest, res : Response){\r\t\t');
-                                    res.push('Business.'+verb+'_'+operationId+'(db, req, res, dbcacher, cacheo, {}).then(function(out) { res.send(out); })\r');
-                                    res.push('});');
-                                }
-
-                    }); 
-                    final.push(res.join(''));
-                });
-*/
                 Fs.writeFile(
                     outPath, 
                     new js.node.Buffer(final.join('')),
