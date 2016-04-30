@@ -258,15 +258,8 @@ class Main {
                     res.push('\r\t\t});\r');
                     res.push('\t}\r\r');
 
-
-                    res.push('\tpublic static function mapDB'+def+'s( i : Array<$def> , f : DB__$tbName -> DB__$tbName) : DB__'+tbName+' {\r');
-                    res.push('\t\treturn Lambda.map(i, function (j : $def) : DB__$tbName {\r');
-                    res.push('\t\t\treturn map$def(j,f);\r');
-                    res.push('\t\t});\r');
-                    res.push('\t}\r\r');
-
-                    res.push('\tpublic static function mapDB$def( i : $def , f : DB__$tbName ->  DB__$tbName) :  DB__'+tbName+' {\r');
-                    res.push('\t\treturn f({\r\t\t\t');
+                    res.push('\tpublic static function mapDB$def( i : $def) :  DB__'+tbName+' {\r');
+                    res.push('\t\treturn {\r\t\t\t');
 
                     if (Reflect.hasField(content, 'properties')) {
                              
@@ -286,7 +279,7 @@ class Main {
                         }
                     }
 
-                    res.push('\r\t\t});\r');
+                    res.push('\r\t\t};\r');
                     res.push('\t}\r\r');
 
 
