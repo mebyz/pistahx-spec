@@ -8,6 +8,8 @@ import js.Node;
 import js.Node.*;
 import haxe.ds.*;
 
+import haxe.Json.*;
+
 using  haxe.ds.Option;
 // PARTIAL OPENAPI START
 
@@ -27,49 +29,148 @@ typedef ApiVersion  = String;
 typedef ApiHost     = String;
 typedef ApiBasePath = String;
 
-/*
-export interface ApiDefinition {
-    swagger: string
-    info: InfoObject
-    host?: string
-    basePath?: string
-    schemes?: string[]
-    consumes?: MimeTypes
-    produces?: MimeTypes
-    paths: PathsObject
-    definitions?: DefinitionsObject
-    parameters?: ParametersDefinitionsObject
-    responses?: ResponsesDefinitionsObject
-    securityDefinitions?: SecurityDefinitionsObject
-    security?: SecurityRequirementObject[]
-    tags?: TagObject[]
-    externalDocs?: ExternalDocumentationObject
+
+typedef ApiBinding = {
+    site            : String, 
+    localhost       : String, 
+    operations      : Array<Dynamic>,
+    userDomain      : String ,
+    legacyDomain    : String
+
 }
 
-type MimeTypes = string[]
-
-export interface InfoObject {
-    title: string
-    description?: string
-    termsOfService?: string
-    contact?: ContactObject
-    license?: LicenseObject
-    version: string
+typedef Operation = {
+    ?httpMethod     : String,
+    ?path           : String,
+    ?summary        : String,
+    ?operationId    : String
 }
+class ApiOperation {
+    
+  var txtArgs   : String;
+  var original       : Dynamic;
+  var path      : String;
+  var urlParams : Dynamic;
+  var extraParams     : Dynamic; 
+  var summary : Dynamic;
 
-export interface ContactObject {
-    name?: string
-    url?: string
-    email?: string
-}
+  public function new(t : Dynamic){
+    original = t;
+    path =  original.operation.path;     
+    summary = haxe.Json.parse(StringTools.replace(original.operation.summary,"'",'"'));
+    
+    var r = ~/\{([^}]+)\}/g;
+    urlParams = [];
+    r.map(path, function(r) {
+      var match = r.matched(0);
+      switch (match) {
+          default: 
+            var f = match;
+            f   = StringTools.replace(f,'{',':');
+            f   = StringTools.replace(f,'}','');
+            urlParams.push(f); 
+            return match;
+      };
+    });
+    
+    path   = StringTools.replace(path,'{',':');
+    path   = StringTools.replace(path,'}','');
+    
+    // extraParams will hold all our query parameters
+    extraParams = { 'url_params' : urlParams , 'ttl' : summary.ttl, 'xttl' : summary.xttl, 'cachekey' :  summary.cachekey, 'xcachekey' : summary.xcachekey };    
+  }
+ 
+  public function getCacheArgs() {
+    return summary;
+  }
 
-export interface LicenseObject {
-    name: string
-    url?: string
+  public function getExtraParams() {
+    return extraParams;
+  }
+
+  public function getPath() {
+    return path;
+  }
+
 }
-*/
 
 class Main {
+
+
+  public static function initApiBinding(spec : String) : ApiBinding {
+  
+    var nativeObject = Yaml.parse(spec, Parser.options().useObjects());
+   
+    var info = Reflect.field(nativeObject, 'info');
+        
+    var sitePath = '';
+    if (Reflect.hasField(info, 'x-website'))
+        sitePath = Reflect.field(info, 'x-website');
+
+    var localHost = '';
+    if (Reflect.hasField(info, 'x-website'))
+            localHost = Reflect.field(info, 'x-localhost');
+
+    var userDomain = '';
+    if (Reflect.hasField(info, 'x-domain'))
+            userDomain = Reflect.field(info, 'x-domain');
+
+    var legacyDomain = '';
+    if (Reflect.hasField(info, 'x-legacy'))
+            legacyDomain = Reflect.field(info, 'x-legacy');
+
+    var paths  = Reflect.field(nativeObject, 'paths');
+  
+    var opPaths = [];
+    var preparePath = Reflect.fields(nativeObject.paths);
+    for (p in preparePath){
+        var op = Reflect.field(nativeObject.paths,p);
+        op.path = p;
+        opPaths.push(op);
+    }
+
+    var operations = [];
+       
+    Lambda.map(opPaths, function(op) {
+        var opex = Reflect.fields(op);
+
+        var rPath = Reflect.field(op, 'path');
+        Lambda.map(opex, function(opx) {
+            var operation : Operation = {};
+            switch(opx){
+                case 'path' : operation.path = opx; 
+                case _ : {
+                    
+                    operation.httpMethod = opx;
+                    operation.path = rPath; 
+                    operation.summary = '';
+                    operation.operationId = '';
+                   
+                    var methodargs = Reflect.field(op, opx);      
+                    var methodargsMap = Reflect.fields(methodargs);
+                 
+                    methodargsMap
+                    .map(function (patharg) {
+                        var val = Reflect.field(methodargs, patharg);
+                        switch(patharg) {
+                            case 'summary': operation.summary=val;
+                            case 'operationId': operation.operationId=val;
+                        }
+                    }); 
+                    operations.push({operation:operation});
+                }
+            }
+        });
+    });    
+
+    return {
+        site : sitePath, 
+        localhost: localHost, 
+        operations : operations, 
+        userDomain : userDomain ,
+        legacyDomain : legacyDomain
+    }
+  }
 
    static public function getType(expr : Dynamic) : String{
         // TODO : find a way to type match with hx-yaml types (ie : YInt) ??
@@ -85,16 +186,6 @@ class Main {
             case _          : 'String';
         }
     }
-
-
-
-
-
-
-
-
-
-
 
     static public function checkApiVersion(val : Dynamic) : ApiVersion {
         return switch (Type.getClass(val)) {
@@ -157,147 +248,220 @@ class Main {
 
     static function main() {
 
-        if(process.env.exists("input") && process.env.exists("output")) {
+        if(process.env.exists("input") && process.env.exists("output") && process.env.exists("type")) {
         
             var specPath    = process.env.get("input");
             var outPath     = process.env.get("output");
+            var type        = process.env.get("type");
 
             var yaml = Fs.readFileSync(specPath, 'utf8');
             var nativeObject = Yaml.parse(yaml, Parser.options().useObjects());
 
+            var apiBind = initApiBinding(yaml);
 
-            //safeParse(yaml);
+            if (type == "routes") {
+                var final = [''];    
+                apiBind
+                .operations
+                .map( function(operation) {
+                    var apiOp = new ApiOperation(operation);
+                    var args  = apiOp.getCacheArgs();
+                    var extra = apiOp.getExtraParams();
+                    var path  = apiOp.getPath();
+                    var opId = operation.operation.operationId;
+                    var opMethod = operation.operation.httpMethod + '_' + opId;
+                    var res = [];
+                    res.push('\r\rapp.'+operation.operation.httpMethod+'( \'$path\',\r\t\t');
 
+                     if (args.ttl != '0')     
+                        res.push('cacheo.route({ expire: '+args.ttl+' }),\r\t\t');
+                     else
+                        res.push('function(req, res, next) { next(); },\r\t\t');
 
-            var defs = nativeObject.definitions;
-            var defsx = Reflect.fields(defs);
-            var final = ['import thx.core.*;\r\r'];
-            Lambda.map(defsx,function(def) {
-                var res = [];
-                res.push('typedef $def = ');
-                var content = Reflect.field(defs, def);
+                    res.push('untyped function(req : PistahxRequest, res : Response){\r\t\t');
+                    res.push('Business.$opMethod(db, req, res, dbcacher, cacheo, '+haxe.Json.stringify(extra)+').then(function(out) { res.send(out); })\r');
+                    res.push('});');
+                    final.push(res.join(''));
+                });
+
                 
+                /*                    var defs = nativeObject.paths;
+                var defsx = Reflect.fields(defs);
+                var final = [''];    
+ 
+                Lambda.map(defsx,function(def) {
+                    var res = [];
+                    var content = Reflect.field(defs, def);
+                  
+                    var contentx = Reflect.fields(content);
 
-                if (Reflect.hasField(content, 'properties')) {
-                         
+                    //trace(content);
+                    Lambda.map(contentx,function(verb) {
+                                var verbargs = Reflect.field(content,verb);
+                                //trace(verbargs);
+                                var operationId = Reflect.field(verbargs,'operationId');
+                                if (Reflect.hasField(verbargs, 'summary')) {
+                                    var props = Reflect.field(verbargs,'summary');
+                                    var r = ~/'/g;
+                                    var propsJson = haxe.Json.parse(r.replace(props,'"')); 
+                                     res.push('\r\rapp.'+verb+'( \'$def\',\r\t\t');
 
-                    if (Reflect.hasField(content.properties, 'result')) {
-                        res.push('List<' + Reflect.field(content.properties.result.items,"$ref").replace('#/definitions/','')+'>;\r\r');
+                                     if (propsJson.ttl != '0')     
+                                        res.push('cacheo.route({ expire: '+propsJson.ttl+' }),\r\t\t');
+                                     else
+                                        res.push('function(req, res, next) { next(); },\r\t\t');
+
+                                    res.push('untyped function(req : PistahxRequest, res : Response){\r\t\t');
+                                    res.push('Business.'+verb+'_'+operationId+'(db, req, res, dbcacher, cacheo, {}).then(function(out) { res.send(out); })\r');
+                                    res.push('});');
+                                }
+
+                    }); 
+                    final.push(res.join(''));
+                });
+*/
+                Fs.writeFile(
+                    outPath, 
+                    new js.node.Buffer(final.join('')),
+                    function(err) {
+                    console.log('$outPath file saved!');
+                    }
+                );
+
+            }
+
+            if (type == "typedef") {
+
+                var defs = nativeObject.definitions;
+                var defsx = Reflect.fields(defs);
+                var final = ['import thx.core.*;\r\r'];
+                Lambda.map(defsx,function(def) {
+                    var res = [];
+                    res.push('typedef $def = ');
+                    var content = Reflect.field(defs, def);
+                    
+
+                    if (Reflect.hasField(content, 'properties')) {
+                             
+
+                        if (Reflect.hasField(content.properties, 'result')) {
+                            res.push('List<' + Reflect.field(content.properties.result.items,"$ref").replace('#/definitions/','')+'>;\r\r');
+                        }
+                        else {
+                    
+
+                            res.push('{\r\t\t\t');
+
+                            var props = Reflect.fields(content.properties);
+                            var keys = [];
+                            Lambda.map(props,function(prop) {
+                                var propx = Reflect.field(content.properties,prop);
+                                var type = getType(propx);
+                                keys.push('$prop : $type');
+                            }); 
+
+                            res.push(keys.join(',\r\t\t\t'));
+
+                            res.push("\r\t\t};\r\r");
+                        
+                        }
                     }
                     else {
-                
-
-                        res.push('{\r\t\t\t');
-
-                        var props = Reflect.fields(content.properties);
-                        var keys = [];
-                        Lambda.map(props,function(prop) {
-                            var propx = Reflect.field(content.properties,prop);
-                            var type = getType(propx);
-                            keys.push('$prop : $type');
-                        }); 
-
-                        res.push(keys.join(',\r\t\t\t'));
-
-                        res.push("\r\t\t};\r\r");
+                        var type = getType(content);
+                        res.push('$type;\r\r');
+                    }
                     
-                    }
-                }
-                else {
-                    var type = getType(content);
-                    res.push('$type;\r\r');
-                }
-                
-                final.push(res.join(''));
-                
-
-                //MAPPERS
-                res=[];
-                if (Reflect.hasField(content, 'x-dto-model')) {
-                    var tbName=Reflect.field(content,'x-dto-model');
-
-                    res.push('class '+def+'Mapper {\r\r');
+                    final.push(res.join(''));
                     
-                    res.push('\tpublic static function map'+def+'s( i : Array<DB__$tbName> , f : $def -> $def) : '+def+'s {\r');
-                    res.push('\t\treturn Lambda.map(i, function (j : DB__$tbName) : $def {\r');
-                    res.push('\t\t\treturn map$def(j,f);\r');
-                    res.push('\t\t});\r');
-                    res.push('\t}\r\r');
 
-                    res.push('\tpublic static function map$def( i : DB__$tbName , f : $def -> $def) : $def {\r');
-                    res.push('\t\tvar imap = new thx.AnonymousMap(i);\r\t\t');
-                    res.push('\t\treturn f({\r\t\t\t');
+                    //MAPPERS
+                    res=[];
+                    if (Reflect.hasField(content, 'x-dto-model')) {
+                        var tbName=Reflect.field(content,'x-dto-model');
 
-                    if (Reflect.hasField(content, 'properties')) {
-                             
+                        res.push('class '+def+'Mapper {\r\r');
+                        
+                        res.push('\tpublic static function map'+def+'s( i : Array<DB__$tbName> , f : $def -> $def) : '+def+'s {\r');
+                        res.push('\t\treturn Lambda.map(i, function (j : DB__$tbName) : $def {\r');
+                        res.push('\t\t\treturn map$def(j,f);\r');
+                        res.push('\t\t});\r');
+                        res.push('\t}\r\r');
 
-                        if (Reflect.hasField(content.properties, 'result')) {
-                        }
-                        else {
+                        res.push('\tpublic static function map$def( i : DB__$tbName , f : $def -> $def) : $def {\r');
+                        res.push('\t\tvar imap = new thx.AnonymousMap(i);\r\t\t');
+                        res.push('\t\treturn f({\r\t\t\t');
 
-                            var props = Reflect.fields(content.properties);
-                            var keys = [];
-                            Lambda.map(props,function(prop) {
-                                var propx = Reflect.field(content.properties,prop);
-                                var field = Reflect.field(propx,'x-dto-field');
-				var ftype = Reflect.field(propx,'x-dto-field-type');
-                                 var r : EReg = ~/\./;
-                                if(r.match(field)){
-                                    if (ftype == 'Int')
-					keys.push('$prop : Std.parseInt(imap.get(\'$field\'))');
-				    else 
-					keys.push('$prop : imap.get(\'$field\')');
-				}
-                                else
-                                    keys.push('$prop : i.$field');
-                            });                     
-                            res.push(keys.join(',\r\t\t\t'));
-                        }
+                        if (Reflect.hasField(content, 'properties')) {
+                                 
+
+                            if (Reflect.hasField(content.properties, 'result')) {
+                            }
+                            else {
+
+                                var props = Reflect.fields(content.properties);
+                                var keys = [];
+                                Lambda.map(props,function(prop) {
+                                    var propx = Reflect.field(content.properties,prop);
+                                    var field = Reflect.field(propx,'x-dto-field');
+                    var ftype = Reflect.field(propx,'x-dto-field-type');
+                                     var r : EReg = ~/\./;
+                                    if(r.match(field)){
+                                        if (ftype == 'Int')
+                        keys.push('$prop : Std.parseInt(imap.get(\'$field\'))');
+                        else 
+                        keys.push('$prop : imap.get(\'$field\')');
                     }
-
-                    res.push('\r\t\t});\r');
-                    res.push('\t}\r\r');
-
-                    res.push('\tpublic static function mapDB$def( i : $def) :  DB__'+tbName+' {\r');
-                    res.push('\t\treturn {\r\t\t\t');
-
-                    if (Reflect.hasField(content, 'properties')) {
-                             
-
-                        if (Reflect.hasField(content.properties, 'result')) {
+                                    else
+                                        keys.push('$prop : i.$field');
+                                });                     
+                                res.push(keys.join(',\r\t\t\t'));
+                            }
                         }
-                        else {
 
-                            var props = Reflect.fields(content.properties);
-                            var keys = [];
-                            Lambda.map(props,function(prop) {
-                                var propx = Reflect.field(content.properties,prop);
-                                var field = Reflect.field(propx,'x-dto-field');
-                                    keys.push('$field : i.$prop');
-                            });                     
-                            res.push(keys.join(',\r\t\t\t'));
+                        res.push('\r\t\t});\r');
+                        res.push('\t}\r\r');
+
+                        res.push('\tpublic static function mapDB$def( i : $def) :  DB__'+tbName+' {\r');
+                        res.push('\t\treturn {\r\t\t\t');
+
+                        if (Reflect.hasField(content, 'properties')) {
+                                 
+
+                            if (Reflect.hasField(content.properties, 'result')) {
+                            }
+                            else {
+
+                                var props = Reflect.fields(content.properties);
+                                var keys = [];
+                                Lambda.map(props,function(prop) {
+                                    var propx = Reflect.field(content.properties,prop);
+                                    var field = Reflect.field(propx,'x-dto-field');
+                                        keys.push('$field : i.$prop');
+                                });                     
+                                res.push(keys.join(',\r\t\t\t'));
+                            }
                         }
+
+                        res.push('\r\t\t};\r');
+                        res.push('\t}\r\r');
+
+
+                        res.push('}\r\r');
                     }
-
-                    res.push('\r\t\t};\r');
-                    res.push('\t}\r\r');
-
-
-                    res.push('}\r\r');
-                }
-                final.push(res.join(''));
-            });
+                    final.push(res.join(''));
+                });
 
 
-            Fs.writeFile(
-                outPath, 
-                new js.node.Buffer(final.join('')),
-                function(err) {
-                console.log('$outPath file saved!');
-                }
-            );
+                Fs.writeFile(
+                    outPath, 
+                    new js.node.Buffer(final.join('')),
+                    function(err) {
+                    console.log('$outPath file saved!');
+                    }
+                );
+            }
         }
         else 
-            trace('missing one or more parameters ( usage : input=[yaml_filename] output=[haxe_filename] ./run.sh ) ');
+            trace('missing one or more parameters ( usage : input=[yaml_filename] output=[haxe_filename] type=[typedef/routes]./yaml2hx.js ) ');
     }
 }

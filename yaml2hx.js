@@ -21,6 +21,46 @@ EReg.prototype = {
 	,matched: function(n) {
 		if(this.r.m != null && n >= 0 && n < this.r.m.length) return this.r.m[n]; else throw new js__$Boot_HaxeError("EReg::matched");
 	}
+	,matchedPos: function() {
+		if(this.r.m == null) throw new js__$Boot_HaxeError("No string matched");
+		return { pos : this.r.m.index, len : this.r.m[0].length};
+	}
+	,matchSub: function(s,pos,len) {
+		if(len == null) len = -1;
+		if(this.r.global) {
+			this.r.lastIndex = pos;
+			this.r.m = this.r.exec(len < 0?s:HxOverrides.substr(s,0,pos + len));
+			var b = this.r.m != null;
+			if(b) this.r.s = s;
+			return b;
+		} else {
+			var b1 = this.match(len < 0?HxOverrides.substr(s,pos,null):HxOverrides.substr(s,pos,len));
+			if(b1) {
+				this.r.s = s;
+				this.r.m.index += pos;
+			}
+			return b1;
+		}
+	}
+	,map: function(s,f) {
+		var offset = 0;
+		var buf = new StringBuf();
+		do {
+			if(offset >= s.length) break; else if(!this.matchSub(s,offset)) {
+				buf.add(HxOverrides.substr(s,offset,null));
+				break;
+			}
+			var p = this.matchedPos();
+			buf.add(HxOverrides.substr(s,offset,p.pos - offset));
+			buf.add(f(this));
+			if(p.len == 0) {
+				buf.add(HxOverrides.substr(s,p.pos,1));
+				offset = p.pos + 1;
+			} else offset = p.pos + p.len;
+		} while(this.r.global);
+		if(!this.r.global && offset > 0 && offset < s.length) buf.add(HxOverrides.substr(s,offset,null));
+		return buf.b;
+	}
 	,__class__: EReg
 };
 var HxOverrides = function() { };
@@ -96,8 +136,96 @@ ApiCheck.None = ["None",0];
 ApiCheck.None.toString = $estr;
 ApiCheck.None.__enum__ = ApiCheck;
 ApiCheck.ApiObject = function(def) { var $x = ["ApiObject",1,def]; $x.__enum__ = ApiCheck; $x.toString = $estr; return $x; };
+var ApiOperation = function(t) {
+	var _g = this;
+	this.original = t;
+	this.path = this.original.operation.path;
+	this.summary = JSON.parse(StringTools.replace(this.original.operation.summary,"'","\""));
+	var r = new EReg("\\{([^}]+)\\}","g");
+	this.urlParams = [];
+	r.map(this.path,function(r1) {
+		var match = r1.matched(0);
+		var f = match;
+		f = StringTools.replace(f,"{",":");
+		f = StringTools.replace(f,"}","");
+		_g.urlParams.push(f);
+		return match;
+	});
+	this.path = StringTools.replace(this.path,"{",":");
+	this.path = StringTools.replace(this.path,"}","");
+	this.extraParams = { 'url_params' : this.urlParams, 'ttl' : this.summary.ttl, 'xttl' : this.summary.xttl, 'cachekey' : this.summary.cachekey, 'xcachekey' : this.summary.xcachekey};
+};
+ApiOperation.__name__ = ["ApiOperation"];
+ApiOperation.prototype = {
+	getCacheArgs: function() {
+		return this.summary;
+	}
+	,getExtraParams: function() {
+		return this.extraParams;
+	}
+	,getPath: function() {
+		return this.path;
+	}
+	,__class__: ApiOperation
+};
 var Main = function() { };
 Main.__name__ = ["Main"];
+Main.initApiBinding = function(spec) {
+	var nativeObject = yaml_Yaml.parse(spec,yaml_Parser.options().useObjects());
+	var info = Reflect.field(nativeObject,"info");
+	var sitePath = "";
+	if(Object.prototype.hasOwnProperty.call(info,"x-website")) sitePath = Reflect.field(info,"x-website");
+	var localHost = "";
+	if(Object.prototype.hasOwnProperty.call(info,"x-website")) localHost = Reflect.field(info,"x-localhost");
+	var userDomain = "";
+	if(Object.prototype.hasOwnProperty.call(info,"x-domain")) userDomain = Reflect.field(info,"x-domain");
+	var legacyDomain = "";
+	if(Object.prototype.hasOwnProperty.call(info,"x-legacy")) legacyDomain = Reflect.field(info,"x-legacy");
+	var paths = Reflect.field(nativeObject,"paths");
+	var opPaths = [];
+	var preparePath = Reflect.fields(nativeObject.paths);
+	var _g = 0;
+	while(_g < preparePath.length) {
+		var p = preparePath[_g];
+		++_g;
+		var op = Reflect.field(nativeObject.paths,p);
+		op.path = p;
+		opPaths.push(op);
+	}
+	var operations = [];
+	Lambda.map(opPaths,function(op1) {
+		var opex = Reflect.fields(op1);
+		var rPath = Reflect.field(op1,"path");
+		Lambda.map(opex,function(opx) {
+			var operation = { };
+			switch(opx) {
+			case "path":
+				operation.path = opx;
+				break;
+			default:
+				operation.httpMethod = opx;
+				operation.path = rPath;
+				operation.summary = "";
+				operation.operationId = "";
+				var methodargs = Reflect.field(op1,opx);
+				var methodargsMap = Reflect.fields(methodargs);
+				methodargsMap.map(function(patharg) {
+					var val = Reflect.field(methodargs,patharg);
+					switch(patharg) {
+					case "summary":
+						operation.summary = val;
+						break;
+					case "operationId":
+						operation.operationId = val;
+						break;
+					}
+				});
+				operations.push({ operation : operation});
+			}
+		});
+	});
+	return { site : sitePath, localhost : localHost, operations : operations, userDomain : userDomain, legacyDomain : legacyDomain};
+};
 Main.getType = function(expr) {
 	var type = expr.type;
 	var format = expr.format;
@@ -192,96 +320,128 @@ Main.main = function() {
 		var this2 = process.env;
 		$r = Object.prototype.hasOwnProperty.call(this2,"output");
 		return $r;
+	}(this)) && (function($this) {
+		var $r;
+		var this3 = process.env;
+		$r = Object.prototype.hasOwnProperty.call(this3,"type");
+		return $r;
 	}(this))) {
 		var specPath;
-		var this3 = process.env;
-		specPath = this3.input;
-		var outPath;
 		var this4 = process.env;
-		outPath = this4.output;
+		specPath = this4.input;
+		var outPath;
+		var this5 = process.env;
+		outPath = this5.output;
+		var type;
+		var this6 = process.env;
+		type = this6.type;
 		var yaml1 = js_node_Fs.readFileSync(specPath,"utf8");
 		var nativeObject = yaml_Yaml.parse(yaml1,yaml_Parser.options().useObjects());
-		var defs = nativeObject.definitions;
-		var defsx = Reflect.fields(defs);
-		var $final = ["import thx.core.*;\r\r"];
-		Lambda.map(defsx,function(def) {
-			var res = [];
-			res.push("typedef " + def + " = ");
-			var content = Reflect.field(defs,def);
-			if(Object.prototype.hasOwnProperty.call(content,"properties")) {
-				if(Object.prototype.hasOwnProperty.call(content.properties,"result")) res.push("List<" + Std.string(Reflect.field(content.properties.result.items,"$ref").replace("#/definitions/","")) + ">;\r\r"); else {
-					res.push("{\r\t\t\t");
-					var props = Reflect.fields(content.properties);
-					var keys = [];
-					Lambda.map(props,function(prop) {
-						var propx = Reflect.field(content.properties,prop);
-						var type = Main.getType(propx);
-						keys.push("" + prop + " : " + type);
-					});
-					res.push(keys.join(",\r\t\t\t"));
-					res.push("\r\t\t};\r\r");
-				}
-			} else {
-				var type1 = Main.getType(content);
-				res.push("" + type1 + ";\r\r");
-			}
-			$final.push(res.join(""));
-			res = [];
-			if(Object.prototype.hasOwnProperty.call(content,"x-dto-model")) {
-				var tbName = Reflect.field(content,"x-dto-model");
-				res.push("class " + def + "Mapper {\r\r");
-				res.push("\tpublic static function map" + def + ("s( i : Array<DB__" + tbName + "> , f : " + def + " -> " + def + ") : ") + def + "s {\r");
-				res.push("\t\treturn Lambda.map(i, function (j : DB__" + tbName + ") : " + def + " {\r");
-				res.push("\t\t\treturn map" + def + "(j,f);\r");
-				res.push("\t\t});\r");
-				res.push("\t}\r\r");
-				res.push("\tpublic static function map" + def + "( i : DB__" + tbName + " , f : " + def + " -> " + def + ") : " + def + " {\r");
-				res.push("\t\tvar imap = new thx.AnonymousMap(i);\r\t\t");
-				res.push("\t\treturn f({\r\t\t\t");
+		var apiBind = Main.initApiBinding(yaml1);
+		if(type == "routes") {
+			var $final = [""];
+			apiBind.operations.map(function(operation) {
+				var apiOp = new ApiOperation(operation);
+				var args = apiOp.getCacheArgs();
+				var extra = apiOp.getExtraParams();
+				var path = apiOp.getPath();
+				var opId = operation.operation.operationId;
+				var opMethod = operation.operation.httpMethod + "_" + opId;
+				var res = [];
+				res.push("\r\rapp." + operation.operation.httpMethod + ("( '" + path + "',\r\t\t"));
+				if(args.ttl != "0") res.push("cacheo.route({ expire: " + args.ttl + " }),\r\t\t"); else res.push("function(req, res, next) { next(); },\r\t\t");
+				res.push("untyped function(req : PistahxRequest, res : Response){\r\t\t");
+				res.push("Business." + opMethod + "(db, req, res, dbcacher, cacheo, " + JSON.stringify(extra) + ").then(function(out) { res.send(out); })\r");
+				res.push("});");
+				$final.push(res.join(""));
+			});
+			js_node_Fs.writeFile(outPath,new js_node_buffer_Buffer($final.join("")),function(err) {
+				console.log("" + outPath + " file saved!");
+			});
+		}
+		if(type == "typedef") {
+			var defs = nativeObject.definitions;
+			var defsx = Reflect.fields(defs);
+			var final1 = ["import thx.core.*;\r\r"];
+			Lambda.map(defsx,function(def) {
+				var res1 = [];
+				res1.push("typedef " + def + " = ");
+				var content = Reflect.field(defs,def);
 				if(Object.prototype.hasOwnProperty.call(content,"properties")) {
-					if(Object.prototype.hasOwnProperty.call(content.properties,"result")) {
-					} else {
-						var props1 = Reflect.fields(content.properties);
-						var keys1 = [];
-						Lambda.map(props1,function(prop1) {
-							var propx1 = Reflect.field(content.properties,prop1);
-							var field = Reflect.field(propx1,"x-dto-field");
-							var ftype = Reflect.field(propx1,"x-dto-field-type");
-							var r = new EReg("\\.","");
-							if(r.match(field)) {
-								if(ftype == "Int") keys1.push("" + prop1 + " : Std.parseInt(imap.get('" + field + "'))"); else keys1.push("" + prop1 + " : imap.get('" + field + "')");
-							} else keys1.push("" + prop1 + " : i." + field);
+					if(Object.prototype.hasOwnProperty.call(content.properties,"result")) res1.push("List<" + Std.string(Reflect.field(content.properties.result.items,"$ref").replace("#/definitions/","")) + ">;\r\r"); else {
+						res1.push("{\r\t\t\t");
+						var props = Reflect.fields(content.properties);
+						var keys = [];
+						Lambda.map(props,function(prop) {
+							var propx = Reflect.field(content.properties,prop);
+							var type1 = Main.getType(propx);
+							keys.push("" + prop + " : " + type1);
 						});
-						res.push(keys1.join(",\r\t\t\t"));
+						res1.push(keys.join(",\r\t\t\t"));
+						res1.push("\r\t\t};\r\r");
 					}
+				} else {
+					var type2 = Main.getType(content);
+					res1.push("" + type2 + ";\r\r");
 				}
-				res.push("\r\t\t});\r");
-				res.push("\t}\r\r");
-				res.push("\tpublic static function mapDB" + def + "( i : " + def + ") :  DB__" + tbName + " {\r");
-				res.push("\t\treturn {\r\t\t\t");
-				if(Object.prototype.hasOwnProperty.call(content,"properties")) {
-					if(Object.prototype.hasOwnProperty.call(content.properties,"result")) {
-					} else {
-						var props2 = Reflect.fields(content.properties);
-						var keys2 = [];
-						Lambda.map(props2,function(prop2) {
-							var propx2 = Reflect.field(content.properties,prop2);
-							var field1 = Reflect.field(propx2,"x-dto-field");
-							keys2.push("" + field1 + " : i." + prop2);
-						});
-						res.push(keys2.join(",\r\t\t\t"));
+				final1.push(res1.join(""));
+				res1 = [];
+				if(Object.prototype.hasOwnProperty.call(content,"x-dto-model")) {
+					var tbName = Reflect.field(content,"x-dto-model");
+					res1.push("class " + def + "Mapper {\r\r");
+					res1.push("\tpublic static function map" + def + ("s( i : Array<DB__" + tbName + "> , f : " + def + " -> " + def + ") : ") + def + "s {\r");
+					res1.push("\t\treturn Lambda.map(i, function (j : DB__" + tbName + ") : " + def + " {\r");
+					res1.push("\t\t\treturn map" + def + "(j,f);\r");
+					res1.push("\t\t});\r");
+					res1.push("\t}\r\r");
+					res1.push("\tpublic static function map" + def + "( i : DB__" + tbName + " , f : " + def + " -> " + def + ") : " + def + " {\r");
+					res1.push("\t\tvar imap = new thx.AnonymousMap(i);\r\t\t");
+					res1.push("\t\treturn f({\r\t\t\t");
+					if(Object.prototype.hasOwnProperty.call(content,"properties")) {
+						if(Object.prototype.hasOwnProperty.call(content.properties,"result")) {
+						} else {
+							var props1 = Reflect.fields(content.properties);
+							var keys1 = [];
+							Lambda.map(props1,function(prop1) {
+								var propx1 = Reflect.field(content.properties,prop1);
+								var field = Reflect.field(propx1,"x-dto-field");
+								var ftype = Reflect.field(propx1,"x-dto-field-type");
+								var r = new EReg("\\.","");
+								if(r.match(field)) {
+									if(ftype == "Int") keys1.push("" + prop1 + " : Std.parseInt(imap.get('" + field + "'))"); else keys1.push("" + prop1 + " : imap.get('" + field + "')");
+								} else keys1.push("" + prop1 + " : i." + field);
+							});
+							res1.push(keys1.join(",\r\t\t\t"));
+						}
 					}
+					res1.push("\r\t\t});\r");
+					res1.push("\t}\r\r");
+					res1.push("\tpublic static function mapDB" + def + "( i : " + def + ") :  DB__" + tbName + " {\r");
+					res1.push("\t\treturn {\r\t\t\t");
+					if(Object.prototype.hasOwnProperty.call(content,"properties")) {
+						if(Object.prototype.hasOwnProperty.call(content.properties,"result")) {
+						} else {
+							var props2 = Reflect.fields(content.properties);
+							var keys2 = [];
+							Lambda.map(props2,function(prop2) {
+								var propx2 = Reflect.field(content.properties,prop2);
+								var field1 = Reflect.field(propx2,"x-dto-field");
+								keys2.push("" + field1 + " : i." + prop2);
+							});
+							res1.push(keys2.join(",\r\t\t\t"));
+						}
+					}
+					res1.push("\r\t\t};\r");
+					res1.push("\t}\r\r");
+					res1.push("}\r\r");
 				}
-				res.push("\r\t\t};\r");
-				res.push("\t}\r\r");
-				res.push("}\r\r");
-			}
-			$final.push(res.join(""));
-		});
-		js_node_Fs.writeFile(outPath,new js_node_buffer_Buffer($final.join("")),function(err) {
-			console.log("" + outPath + " file saved!");
-		});
-	} else console.log("missing one or more parameters ( usage : input=[yaml_filename] output=[haxe_filename] ./run.sh ) ");
+				final1.push(res1.join(""));
+			});
+			js_node_Fs.writeFile(outPath,new js_node_buffer_Buffer(final1.join("")),function(err1) {
+				console.log("" + outPath + " file saved!");
+			});
+		}
+	} else console.log("missing one or more parameters ( usage : input=[yaml_filename] output=[haxe_filename] type=[typedef/routes]./yaml2hx.js ) ");
 };
 Math.__name__ = ["Math"];
 var Reflect = function() { };
@@ -320,6 +480,16 @@ Std.parseInt = function(x) {
 	if(v == 0 && (HxOverrides.cca(x,1) == 120 || HxOverrides.cca(x,1) == 88)) v = parseInt(x);
 	if(isNaN(v)) return null;
 	return v;
+};
+var StringBuf = function() {
+	this.b = "";
+};
+StringBuf.__name__ = ["StringBuf"];
+StringBuf.prototype = {
+	add: function(x) {
+		this.b += Std.string(x);
+	}
+	,__class__: StringBuf
 };
 var StringTools = function() { };
 StringTools.__name__ = ["StringTools"];
@@ -2881,6 +3051,16 @@ var Bool = Boolean;
 Bool.__ename__ = ["Bool"];
 var Class = { __name__ : ["Class"]};
 var Enum = { };
+if(Array.prototype.map == null) Array.prototype.map = function(f) {
+	var a = [];
+	var _g1 = 0;
+	var _g = this.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		a[i] = f(this[i]);
+	}
+	return a;
+};
 var __map_reserved = {}
 var ArrayBuffer = (Function("return typeof ArrayBuffer != 'undefined' ? ArrayBuffer : null"))() || js_html_compat_ArrayBuffer;
 if(ArrayBuffer.prototype.slice == null) ArrayBuffer.prototype.slice = js_html_compat_ArrayBuffer.sliceImpl;
