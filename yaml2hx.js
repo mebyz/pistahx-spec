@@ -100,9 +100,16 @@ var Main = function() { };
 Main.__name__ = ["Main"];
 Main.getType = function(expr) {
 	var type = expr.type;
+	var format = expr.format;
 	switch(type) {
 	case "string":
-		return "String";
+		switch(format) {
+		case "date":
+			return "Date";
+		default:
+			return "String";
+		}
+		break;
 	case "integer":
 		return "Int";
 	case "boolean":

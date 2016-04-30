@@ -73,9 +73,13 @@ class Main {
 
    static public function getType(expr : Dynamic) : String{
         // TODO : find a way to type match with hx-yaml types (ie : YInt) ??
-        var type = expr.type;            
+        var type = expr.type;     
+        var format = expr.format;         
         return switch (type) {
-            case 'string'   : 'String';
+            case 'string'   : switch (format) {
+                case 'date': 'Date';
+                case _: 'String';
+            };
             case 'integer'  : 'Int';
             case 'boolean'  : 'Bool';
             case _          : 'String';
