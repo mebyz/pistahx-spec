@@ -236,7 +236,7 @@ Main.main = function() {
 				res.push("\t\t});\r");
 				res.push("\t}\r\r");
 				res.push("\tpublic static function map" + def + "( i : DB__" + tbName + " , f : " + def + " -> " + def + ") : " + def + " {\r");
-				res.push("\t\tvar imap = new thx.AnonymousMap(i);");
+				res.push("\t\tvar imap = new thx.AnonymousMap(i);\r\t\t");
 				res.push("\t\treturn f({\r\t\t\t");
 				if(Object.prototype.hasOwnProperty.call(content,"properties")) {
 					if(Object.prototype.hasOwnProperty.call(content.properties,"result")) {
@@ -253,6 +253,28 @@ Main.main = function() {
 							} else keys1.push("" + prop1 + " : i." + field);
 						});
 						res.push(keys1.join(",\r\t\t\t"));
+					}
+				}
+				res.push("\r\t\t});\r");
+				res.push("\t}\r\r");
+				res.push("\tpublic static function mapDB" + def + ("s( i : Array<" + def + "> , f : DB__" + tbName + " -> DB__" + tbName + ") : DB__") + tbName + " {\r");
+				res.push("\t\treturn Lambda.map(i, function (j : " + def + ") : DB__" + tbName + " {\r");
+				res.push("\t\t\treturn map" + def + "(j,f);\r");
+				res.push("\t\t});\r");
+				res.push("\t}\r\r");
+				res.push("\tpublic static function mapDB" + def + "( i : " + def + " , f : DB__" + tbName + " ->  DB__" + tbName + ") :  DB__" + tbName + " {\r");
+				res.push("\t\treturn f({\r\t\t\t");
+				if(Object.prototype.hasOwnProperty.call(content,"properties")) {
+					if(Object.prototype.hasOwnProperty.call(content.properties,"result")) {
+					} else {
+						var props2 = Reflect.fields(content.properties);
+						var keys2 = [];
+						Lambda.map(props2,function(prop2) {
+							var propx2 = Reflect.field(content.properties,prop2);
+							var field1 = Reflect.field(propx2,"x-dto-field");
+							keys2.push("" + field1 + " : i." + prop2);
+						});
+						res.push(keys2.join(",\r\t\t\t"));
 					}
 				}
 				res.push("\r\t\t});\r");
