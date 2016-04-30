@@ -349,7 +349,7 @@ Main.main = function() {
 				var opMethod = operation.operation.httpMethod + "_" + opId;
 				var res = [];
 				res.push("\r\rapp." + operation.operation.httpMethod + ("( '" + path + "',\r\t\t"));
-				if(args.ttl != "0") res.push("cacheo.route({ expire: " + args.ttl + " }),\r\t\t"); else res.push("function(req: PistahxRequest, res: Response, next: MiddlewareNext) { next(); },\r\t\t");
+				if(args.ttl != "0") res.push("cacheo.route({ expire: " + args.ttl + " }),\r\t\t"); else res.push("untyped function(req: PistahxRequest, res: Response, next: MiddlewareNext) { next(); },\r\t\t");
 				res.push("untyped function(req : PistahxRequest, res : Response){\r\t\t");
 				res.push("Business." + opMethod + "(db, req, res, dbcacher, cacheo, " + JSON.stringify(extra) + ").then(function(out) { res.send(out); });\r");
 				res.push("});");
