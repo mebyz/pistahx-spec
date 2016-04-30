@@ -279,7 +279,7 @@ class Main {
                         res.push('function(req, res, next) { next(); },\r\t\t');
 
                     res.push('untyped function(req : PistahxRequest, res : Response){\r\t\t');
-                    res.push('Business.$opMethod(db, req, res, dbcacher, cacheo, '+haxe.Json.stringify(extra)+').then(function(out) { res.send(out); })\r');
+                    res.push('Business.$opMethod(db, req, res, dbcacher, cacheo, '+haxe.Json.stringify(extra)+').then(function(out) { res.send(out); });\r');
                     res.push('});');
                     final.push(res.join(''));
                 });

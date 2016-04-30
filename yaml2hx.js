@@ -351,7 +351,7 @@ Main.main = function() {
 				res.push("\r\rapp." + operation.operation.httpMethod + ("( '" + path + "',\r\t\t"));
 				if(args.ttl != "0") res.push("cacheo.route({ expire: " + args.ttl + " }),\r\t\t"); else res.push("function(req, res, next) { next(); },\r\t\t");
 				res.push("untyped function(req : PistahxRequest, res : Response){\r\t\t");
-				res.push("Business." + opMethod + "(db, req, res, dbcacher, cacheo, " + JSON.stringify(extra) + ").then(function(out) { res.send(out); })\r");
+				res.push("Business." + opMethod + "(db, req, res, dbcacher, cacheo, " + JSON.stringify(extra) + ").then(function(out) { res.send(out); });\r");
 				res.push("});");
 				$final.push(res.join(""));
 			});
