@@ -399,6 +399,7 @@ class Main {
                                 Lambda.map(props,function(prop) {
                                     var propx = Reflect.field(content.properties,prop);
                                     var field = Reflect.field(propx,'x-dto-field');
+					if ( field.indexOf('.') == -1 )
                                         keys.push('$field : i.$prop');
                                 });                     
                                 res.push(keys.join(',\r\t\t\t'));
