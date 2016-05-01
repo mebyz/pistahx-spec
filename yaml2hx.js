@@ -141,6 +141,7 @@ var ApiOperation = function(t) {
 	this.original = t;
 	this.path = this.original.operation.path;
 	this.summary = JSON.parse(StringTools.replace(this.original.operation.summary,"'","\""));
+	this.cacheEvents = this.original.operation.cacheEvents;
 	var r = new EReg("\\{([^}]+)\\}","g");
 	this.urlParams = [];
 	r.map(this.path,function(r1) {
@@ -162,6 +163,9 @@ ApiOperation.prototype = {
 	}
 	,getExtraParams: function() {
 		return this.extraParams;
+	}
+	,getCacheEvents: function() {
+		return this.cacheEvents;
 	}
 	,getPath: function() {
 		return this.path;
@@ -217,6 +221,9 @@ Main.initApiBinding = function(spec) {
 						break;
 					case "operationId":
 						operation.operationId = val;
+						break;
+					case "x-cache-flush":
+						operation.cacheEvents = val;
 						break;
 					}
 				});
@@ -351,7 +358,14 @@ Main.main = function() {
 				res.push("\r\rapp." + operation.operation.httpMethod + ("( conf.get('BASE_URL')+'" + path + "',\r\t\t"));
 				if(args.ttl != "0") res.push("cacheo.route({ expire: " + args.ttl + " }),\r\t\t"); else res.push("untyped function(req: PistahxRequest, res: Response, next: MiddlewareNext) { next(); },\r\t\t");
 				res.push("untyped function(req : PistahxRequest, res : Response){\r\t\t");
-				res.push("Business." + opMethod + "(db, req, res, dbcacher, cacheo, " + JSON.stringify(extra) + ").then(function(out) { res.send(out); });\r");
+				res.push("Business." + opMethod + "(db, req, res, dbcacher, cacheo, " + JSON.stringify(extra) + ").then(function(out) {\n");
+				if(Object.prototype.hasOwnProperty.call(apiOp,"cacheEvents")) {
+					var defsx = Reflect.fields(Reflect.field(apiOp,"cacheEvents"));
+					Lambda.map(defsx,function(def) {
+						res.push("cacheo.del('cacheout:'+conf.get('APP_NAME')+':'+conf.get('BASE_URL')+'" + Reflect.field(apiOp,"cacheEvents")[0] + "', function( err ,num ) {});\n");
+					});
+				}
+				res.push("res.send(out); });\r");
 				res.push("});");
 				$final.push(res.join(""));
 			});
@@ -361,12 +375,12 @@ Main.main = function() {
 		}
 		if(type == "typedef") {
 			var defs = nativeObject.definitions;
-			var defsx = Reflect.fields(defs);
+			var defsx1 = Reflect.fields(defs);
 			var final1 = ["import thx.core.*;\r\r"];
-			Lambda.map(defsx,function(def) {
+			Lambda.map(defsx1,function(def1) {
 				var res1 = [];
-				res1.push("typedef " + def + " = ");
-				var content = Reflect.field(defs,def);
+				res1.push("typedef " + def1 + " = ");
+				var content = Reflect.field(defs,def1);
 				if(Object.prototype.hasOwnProperty.call(content,"properties")) {
 					if(Object.prototype.hasOwnProperty.call(content.properties,"result")) res1.push("List<" + Std.string(Reflect.field(content.properties.result.items,"$ref").replace("#/definitions/","")) + ">;\r\r"); else {
 						res1.push("{\r\t\t\t");
@@ -388,13 +402,13 @@ Main.main = function() {
 				res1 = [];
 				if(Object.prototype.hasOwnProperty.call(content,"x-dto-model")) {
 					var tbName = Reflect.field(content,"x-dto-model");
-					res1.push("class " + def + "Mapper {\r\r");
-					res1.push("\tpublic static function map" + def + ("s( i : Array<DB__" + tbName + "> , f : " + def + " -> " + def + ") : ") + def + "s {\r");
-					res1.push("\t\treturn Lambda.map(i, function (j : DB__" + tbName + ") : " + def + " {\r");
-					res1.push("\t\t\treturn map" + def + "(j,f);\r");
+					res1.push("class " + def1 + "Mapper {\r\r");
+					res1.push("\tpublic static function map" + def1 + ("s( i : Array<DB__" + tbName + "> , f : " + def1 + " -> " + def1 + ") : ") + def1 + "s {\r");
+					res1.push("\t\treturn Lambda.map(i, function (j : DB__" + tbName + ") : " + def1 + " {\r");
+					res1.push("\t\t\treturn map" + def1 + "(j,f);\r");
 					res1.push("\t\t});\r");
 					res1.push("\t}\r\r");
-					res1.push("\tpublic static function map" + def + "( i : DB__" + tbName + " , f : " + def + " -> " + def + ") : " + def + " {\r");
+					res1.push("\tpublic static function map" + def1 + "( i : DB__" + tbName + " , f : " + def1 + " -> " + def1 + ") : " + def1 + " {\r");
 					res1.push("\t\tvar imap = new thx.AnonymousMap(i);\r\t\t");
 					res1.push("\t\treturn f({\r\t\t\t");
 					if(Object.prototype.hasOwnProperty.call(content,"properties")) {
@@ -416,7 +430,7 @@ Main.main = function() {
 					}
 					res1.push("\r\t\t});\r");
 					res1.push("\t}\r\r");
-					res1.push("\tpublic static function mapDB" + def + "( i : " + def + ") :  DB__" + tbName + " {\r");
+					res1.push("\tpublic static function mapDB" + def1 + "( i : " + def1 + ") :  DB__" + tbName + " {\r");
 					res1.push("\t\treturn {\r\t\t\t");
 					if(Object.prototype.hasOwnProperty.call(content,"properties")) {
 						if(Object.prototype.hasOwnProperty.call(content.properties,"result")) {

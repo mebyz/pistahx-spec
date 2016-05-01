@@ -43,6 +43,7 @@ typedef Operation = {
     ?httpMethod     : String,
     ?path           : String,
     ?summary        : String,
+    ?cacheEvents    : Dynamic,
     ?operationId    : String
 }
 class ApiOperation {
@@ -52,13 +53,17 @@ class ApiOperation {
   var path      : String;
   var urlParams : Dynamic;
   var extraParams     : Dynamic; 
+  var cacheEvents     : Dynamic; 
   var summary : Dynamic;
 
   public function new(t : Dynamic){
     original = t;
     path =  original.operation.path;     
     summary = haxe.Json.parse(StringTools.replace(original.operation.summary,"'",'"'));
-    
+
+
+    cacheEvents = original.operation.cacheEvents;
+
     var r = ~/\{([^}]+)\}/g;
     urlParams = [];
     r.map(path, function(r) {
@@ -86,6 +91,10 @@ class ApiOperation {
 
   public function getExtraParams() {
     return extraParams;
+  }
+
+  public function getCacheEvents() : Array<String>{
+    return cacheEvents;
   }
 
   public function getPath() {
@@ -145,7 +154,7 @@ class Main {
                     operation.path = rPath; 
                     operation.summary = '';
                     operation.operationId = '';
-                   
+
                     var methodargs = Reflect.field(op, opx);      
                     var methodargsMap = Reflect.fields(methodargs);
                  
@@ -155,6 +164,7 @@ class Main {
                         switch(patharg) {
                             case 'summary': operation.summary=val;
                             case 'operationId': operation.operationId=val;
+                            case 'x-cache-flush': operation.cacheEvents=val;
                         }
                     }); 
                     operations.push({operation:operation});
@@ -278,7 +288,18 @@ class Main {
                      else
                         res.push('untyped function(req: PistahxRequest, res: Response, next: MiddlewareNext) { next(); },\r\t\t');
                     res.push('untyped function(req : PistahxRequest, res : Response){\r\t\t');
-                    res.push('Business.$opMethod(db, req, res, dbcacher, cacheo, '+haxe.Json.stringify(extra)+').then(function(out) { res.send(out); });\r');
+                    res.push('Business.$opMethod(db, req, res, dbcacher, cacheo, '+haxe.Json.stringify(extra)+').then(function(out) {\n');
+
+                    if(Reflect.hasField(apiOp,'cacheEvents')){
+                    var defsx = Reflect.fields(Reflect.field(apiOp,'cacheEvents'));
+                    Lambda.map(defsx,function(def) {
+
+                        res.push("cacheo.del('cacheout:'+conf.get('APP_NAME')+':'+conf.get('BASE_URL')+'"+Reflect.field(apiOp,'cacheEvents')[0]+"', function( err ,num ) {});\n");
+                   
+                    });
+                    }
+                    
+                    res.push('res.send(out); });\r');
                     res.push('});');
                     final.push(res.join(''));
                 });
