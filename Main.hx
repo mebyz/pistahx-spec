@@ -364,48 +364,9 @@ class Main {
                         var tbName=Reflect.field(content,'x-dto-model');
 
                         res.push('class '+def+'Mapper {\r\r');
-                        
-                        res.push('\tpublic static function map'+def+'s( i : Array<DB__$tbName> , f : $def -> $def) : '+def+'s {\r');
-                        res.push('\t\treturn Lambda.map(i, function (j : DB__$tbName) : $def {\r');
-                        res.push('\t\t\treturn map$def(j,f);\r');
-                        res.push('\t\t});\r');
-                        res.push('\t}\r\r');
 
-                        res.push('\tpublic static function map$def( i : DB__$tbName , f : $def -> $def) : $def {\r');
-                        res.push('\t\tvar imap = new thx.AnonymousMap(i);\r\t\t');
-                        res.push('\t\treturn f({\r\t\t\t');
-
-                        if (Reflect.hasField(content, 'properties')) {
-                                 
-
-                            if (Reflect.hasField(content.properties, 'result')) {
-                            }
-                            else {
-
-                                var props = Reflect.fields(content.properties);
-                                var keys = [];
-                                Lambda.map(props,function(prop) {
-                                    var propx = Reflect.field(content.properties,prop);
-                                    var field = Reflect.field(propx,'x-dto-field');
-                    var ftype = Reflect.field(propx,'x-dto-field-type');
-                                     var r : EReg = ~/\./;
-                                    if(r.match(field)){
-                                        if (ftype == 'Int')
-                        keys.push('$prop : Std.parseInt(imap.get(\'$field\'))');
-                        else 
-                        keys.push('$prop : imap.get(\'$field\')');
-                    }
-                                    else
-                                        keys.push('$prop : i.$field');
-                                });                     
-                                res.push(keys.join(',\r\t\t\t'));
-                            }
-                        }
-
-                        res.push('\r\t\t});\r');
-                        res.push('\t}\r\r');
-
-                        res.push('\tpublic static function mapDB$def( i : $def) :  DB__'+tbName+' {\r');
+                        res.push('\tpublic static function db'+def+'To'+def+'( i : DB__$tbName) : $def {\r');
+                        res.push('\t\tvar imap = new thx.AnonymousMap(i);\r\t');
                         res.push('\t\treturn {\r\t\t\t');
 
                         if (Reflect.hasField(content, 'properties')) {
@@ -420,7 +381,40 @@ class Main {
                                 Lambda.map(props,function(prop) {
                                     var propx = Reflect.field(content.properties,prop);
                                     var field = Reflect.field(propx,'x-dto-field');
-					if ( field.indexOf('.') == -1 )
+                                    var ftype = Reflect.field(propx,'x-dto-field-type');
+                                    var r : EReg = ~/\./;
+                                    if(r.match(field)){
+                                        if (ftype == 'Int')
+                                        keys.push('$prop : Std.parseInt(imap.get(\'$field\'))');
+                                        else 
+                                        keys.push('$prop : imap.get(\'$field\')');
+                                    }
+                                    else
+                                        keys.push('$prop : i.$field');
+                                });                     
+                                res.push(keys.join(',\r\t\t\t'));
+                            }
+                        }
+
+                        res.push('\r\t\t};\r');
+                        res.push('\t}\r\r');
+
+                        res.push('\tpublic static function '+def.substring(0, 1).toLowerCase()+def.substring(1)+'ToDb$def( i : $def) :  DB__'+tbName+' {\r');
+                        res.push('\t\treturn {\r\t\t\t');
+
+                        if (Reflect.hasField(content, 'properties')) {
+                                 
+
+                            if (Reflect.hasField(content.properties, 'result')) {
+                            }
+                            else {
+
+                                var props = Reflect.fields(content.properties);
+                                var keys = [];
+                                Lambda.map(props,function(prop) {
+                                    var propx = Reflect.field(content.properties,prop);
+                                    var field = Reflect.field(propx,'x-dto-field');
+					                if ( field.indexOf('.') == -1 )
                                         keys.push('$field : i.$prop');
                                 });                     
                                 res.push(keys.join(',\r\t\t\t'));

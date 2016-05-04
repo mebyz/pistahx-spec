@@ -403,14 +403,9 @@ Main.main = function() {
 				if(Object.prototype.hasOwnProperty.call(content,"x-dto-model")) {
 					var tbName = Reflect.field(content,"x-dto-model");
 					res1.push("class " + def1 + "Mapper {\r\r");
-					res1.push("\tpublic static function map" + def1 + ("s( i : Array<DB__" + tbName + "> , f : " + def1 + " -> " + def1 + ") : ") + def1 + "s {\r");
-					res1.push("\t\treturn Lambda.map(i, function (j : DB__" + tbName + ") : " + def1 + " {\r");
-					res1.push("\t\t\treturn map" + def1 + "(j,f);\r");
-					res1.push("\t\t});\r");
-					res1.push("\t}\r\r");
-					res1.push("\tpublic static function map" + def1 + "( i : DB__" + tbName + " , f : " + def1 + " -> " + def1 + ") : " + def1 + " {\r");
-					res1.push("\t\tvar imap = new thx.AnonymousMap(i);\r\t\t");
-					res1.push("\t\treturn f({\r\t\t\t");
+					res1.push("\tpublic static function db" + def1 + "To" + def1 + ("( i : DB__" + tbName + ") : " + def1 + " {\r"));
+					res1.push("\t\tvar imap = new thx.AnonymousMap(i);\r\t");
+					res1.push("\t\treturn {\r\t\t\t");
 					if(Object.prototype.hasOwnProperty.call(content,"properties")) {
 						if(Object.prototype.hasOwnProperty.call(content.properties,"result")) {
 						} else {
@@ -428,9 +423,9 @@ Main.main = function() {
 							res1.push(keys1.join(",\r\t\t\t"));
 						}
 					}
-					res1.push("\r\t\t});\r");
+					res1.push("\r\t\t};\r");
 					res1.push("\t}\r\r");
-					res1.push("\tpublic static function mapDB" + def1 + "( i : " + def1 + ") :  DB__" + tbName + " {\r");
+					res1.push("\tpublic static function " + def1.substring(0,1).toLowerCase() + def1.substring(1) + ("ToDb" + def1 + "( i : " + def1 + ") :  DB__") + tbName + " {\r");
 					res1.push("\t\treturn {\r\t\t\t");
 					if(Object.prototype.hasOwnProperty.call(content,"properties")) {
 						if(Object.prototype.hasOwnProperty.call(content.properties,"result")) {
