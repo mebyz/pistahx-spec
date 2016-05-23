@@ -44,7 +44,8 @@ typedef Operation = {
     ?path           : String,
     ?summary        : String,
     ?cacheEvents    : Dynamic,
-    ?operationId    : String
+    ?operationId    : String,
+    ?businessClasss : String
 }
 class ApiOperation {
     
@@ -154,6 +155,7 @@ class Main {
                     operation.path = rPath; 
                     operation.summary = '';
                     operation.operationId = '';
+                    operation.businessClasss='Business';
 
                     var methodargs = Reflect.field(op, opx);      
                     var methodargsMap = Reflect.fields(methodargs);
@@ -165,6 +167,7 @@ class Main {
                             case 'summary': operation.summary=val;
                             case 'operationId': operation.operationId=val;
                             case 'x-cache-flush': operation.cacheEvents=val;
+                            case 'x-business-class': operation.businessClasss=val;
                         }
                     }); 
                     operations.push({operation:operation});
@@ -279,6 +282,7 @@ class Main {
                     var extra = apiOp.getExtraParams();
                     var path  = apiOp.getPath();
                     var opId = operation.operation.operationId;
+                    var businessClass = operation.operation.businessClasss;
                     var opMethod = operation.operation.httpMethod + '_' + opId;
                     var res = [];
                     res.push('\r\rapp.'+operation.operation.httpMethod+'( conf.get(\'BASE_URL\')+\'$path\',\r\t\t');
@@ -288,7 +292,7 @@ class Main {
                      else
                         res.push('untyped function(req: PistahxRequest, res: Response, next: MiddlewareNext) { next(); },\r\t\t');
                     res.push('untyped function(req : PistahxRequest, res : Response){\r\t\t');
-                    res.push('Business.$opMethod(db, req, res, dbcacher, cacheo, '+haxe.Json.stringify(extra)+').then(function(out) {\n');
+                    res.push('$businessClass.$opMethod(db, req, res, dbcacher, cacheo, '+haxe.Json.stringify(extra)+').then(function(out) {\n');
 
                     if(Reflect.hasField(apiOp,'cacheEvents')){
                     var defsx = Reflect.fields(Reflect.field(apiOp,'cacheEvents'));

@@ -19,6 +19,7 @@ paths:
   /users:
     get:
       operationId: users
+      x-business-class: "User"
       tags:
       - "Users"
       summary: "{'ttl':0,'xttl':0,'cachekey':'','xcachekey':''}"
