@@ -1,4 +1,4 @@
-(function (console) { "use strict";
+(function (console, $global) { "use strict";
 var $estr = function() { return js_Boot.__string_rec(this,''); };
 function $extend(from, fields) {
 	function Inherit() {} Inherit.prototype = from; var proto = new Inherit();
@@ -211,6 +211,7 @@ Main.initApiBinding = function(spec) {
 				operation.path = rPath;
 				operation.summary = "";
 				operation.operationId = "";
+				operation.businessClasss = "Business";
 				var methodargs = Reflect.field(op1,opx);
 				var methodargsMap = Reflect.fields(methodargs);
 				methodargsMap.map(function(patharg) {
@@ -224,6 +225,9 @@ Main.initApiBinding = function(spec) {
 						break;
 					case "x-cache-flush":
 						operation.cacheEvents = val;
+						break;
+					case "x-business-class":
+						operation.businessClasss = val;
 						break;
 					}
 				});
@@ -353,12 +357,13 @@ Main.main = function() {
 				var extra = apiOp.getExtraParams();
 				var path = apiOp.getPath();
 				var opId = operation.operation.operationId;
+				var businessClass = operation.operation.businessClasss;
 				var opMethod = operation.operation.httpMethod + "_" + opId;
 				var res = [];
 				res.push("\r\rapp." + operation.operation.httpMethod + ("( conf.get('BASE_URL')+'" + path + "',\r\t\t"));
 				if(args.ttl != "0") res.push("cacheo.route({ expire: " + args.ttl + " }),\r\t\t"); else res.push("untyped function(req: PistahxRequest, res: Response, next: MiddlewareNext) { next(); },\r\t\t");
 				res.push("untyped function(req : PistahxRequest, res : Response){\r\t\t");
-				res.push("Business." + opMethod + "(db, req, res, dbcacher, cacheo, " + JSON.stringify(extra) + ").then(function(out) {\n");
+				res.push("" + businessClass + "." + opMethod + "(db, req, res, dbcacher, cacheo, " + JSON.stringify(extra) + ").then(function(out) {\n");
 				if(Object.prototype.hasOwnProperty.call(apiOp,"cacheEvents")) {
 					var defsx = Reflect.fields(Reflect.field(apiOp,"cacheEvents"));
 					Lambda.map(defsx,function(def) {
@@ -877,7 +882,7 @@ js_Boot.__isNativeObj = function(o) {
 	return js_Boot.__nativeClassName(o) != null;
 };
 js_Boot.__resolveNativeClass = function(name) {
-	return (Function("return typeof " + name + " != \"undefined\" ? " + name + " : null"))();
+	return $global[name];
 };
 var js_html_compat_ArrayBuffer = function(a) {
 	if((a instanceof Array) && a.__enum__ == null) {
@@ -3071,10 +3076,10 @@ if(Array.prototype.map == null) Array.prototype.map = function(f) {
 	return a;
 };
 var __map_reserved = {}
-var ArrayBuffer = (Function("return typeof ArrayBuffer != 'undefined' ? ArrayBuffer : null"))() || js_html_compat_ArrayBuffer;
+var ArrayBuffer = $global.ArrayBuffer || js_html_compat_ArrayBuffer;
 if(ArrayBuffer.prototype.slice == null) ArrayBuffer.prototype.slice = js_html_compat_ArrayBuffer.sliceImpl;
-var DataView = (Function("return typeof DataView != 'undefined' ? DataView : null"))() || js_html_compat_DataView;
-var Uint8Array = (Function("return typeof Uint8Array != 'undefined' ? Uint8Array : null"))() || js_html_compat_Uint8Array._new;
+var DataView = $global.DataView || js_html_compat_DataView;
+var Uint8Array = $global.Uint8Array || js_html_compat_Uint8Array._new;
 haxe_io_FPHelper.i64tmp = (function($this) {
 	var $r;
 	var x = new haxe__$Int64__$_$_$Int64(0,0);
@@ -3283,4 +3288,4 @@ yaml_type_YNull.YAML_NULL_MAP = (function($this) {
 yaml_type_YTimestamp.YAML_TIMESTAMP_REGEXP = new EReg("^([0-9][0-9][0-9][0-9])" + "-([0-9][0-9]?)" + "-([0-9][0-9]?)" + "(?:(?:[Tt]|[ \\t]+)" + "([0-9][0-9]?)" + ":([0-9][0-9])" + ":([0-9][0-9])" + "(?:\\.([0-9]*))?" + "(?:[ \\t]*(Z|([-+])([0-9][0-9]?)" + "(?::([0-9][0-9]))?))?)?$","iu");
 yaml_util_Ints.BASE = "0123456789abcdefghijklmnopqrstuvwxyz";
 Main.main();
-})(typeof console != "undefined" ? console : {log:function(){}});
+})(typeof console != "undefined" ? console : {log:function(){}}, typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this);
