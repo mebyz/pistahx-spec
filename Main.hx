@@ -194,6 +194,7 @@ class Main {
                 case 'date': 'Date';
                 case _: 'String';
             };
+            case 'date'     : 'Date';
             case 'integer'  : 'Int';
             case 'boolean'  : 'Bool';
             case _          : 'String';

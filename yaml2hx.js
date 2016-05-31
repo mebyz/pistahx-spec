@@ -249,6 +249,8 @@ Main.getType = function(expr) {
 			return "String";
 		}
 		break;
+	case "date":
+		return "Date";
 	case "integer":
 		return "Int";
 	case "boolean":
