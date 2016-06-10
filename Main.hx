@@ -389,6 +389,9 @@ class Main {
                                     var assoc = Reflect.field(propx,'x-dto-assoc');
                                     var ftype = Reflect.field(propx,'x-dto-field-type');
                                     var r : EReg = ~/\./;
+                                     if(r.match(assoc)){
+                                        keys.push('$prop : imap.get(\'$assoc\')');
+                                    }
                                     if(r.match(field)){
                                         if (ftype == 'Int')
                                         keys.push('$prop : Std.parseInt(imap.get(\'$field\'))');
@@ -397,7 +400,7 @@ class Main {
                                     }
                                     else {
 
-                                        if(assoc!='undefined'){
+                                        if(Reflect.hasField(propx,'x-dto-assoc')){
                                             keys.push('$prop : imap.get(\'$assoc\')');
                                         }
                                         else
@@ -426,9 +429,11 @@ class Main {
                                 Lambda.map(props,function(prop) {
                                     var propx = Reflect.field(content.properties,prop);
                                     var field = Reflect.field(propx,'x-dto-field');
-                                    if(field != 'undefined')
-    					                if ( field.indexOf('.') == -1 )
-                                            keys.push('$field : i.$prop');
+                                    var r : EReg = ~/\./;
+                                    if(Reflect.hasField(propx,'x-dto-field')){
+        					                if ( field.indexOf('.') == -1 )
+                                                keys.push('$field : i.$prop');
+                                    }
                                 });                     
                                 res.push(keys.join(',\r\t\t\t'));
                             }
