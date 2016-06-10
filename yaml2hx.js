@@ -443,7 +443,7 @@ Main.main = function() {
 							Lambda.map(props2,function(prop2) {
 								var propx2 = Reflect.field(content.properties,prop2);
 								var field1 = Reflect.field(propx2,"x-dto-field");
-								if(field1.indexOf(".") == -1) keys2.push("" + Std.string(field1) + " : i." + prop2);
+								if(field1!==undefined)if(field1.indexOf(".") == -1) keys2.push("" + Std.string(field1) + " : i." + prop2);
 							});
 							res1.push(keys2.join(",\r\t\t\t"));
 						}
