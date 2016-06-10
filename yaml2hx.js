@@ -421,11 +421,12 @@ Main.main = function() {
 							Lambda.map(props1,function(prop1) {
 								var propx1 = Reflect.field(content.properties,prop1);
 								var field = Reflect.field(propx1,"x-dto-field");
+								var assoc = Reflect.field(propx1,"x-dto-assoc");
 								var ftype = Reflect.field(propx1,"x-dto-field-type");
 								var r = new EReg("\\.","");
 								if(r.match(field)) {
 									if(ftype == "Int") keys1.push("" + prop1 + " : Std.parseInt(imap.get('" + field + "'))"); else keys1.push("" + prop1 + " : imap.get('" + field + "')");
-								} else keys1.push("" + prop1 + " : i." + field);
+								} else if(r.match(assoc)) keys1.push("" + prop1 + " : imap.get('" + assoc + "')"); else keys1.push("" + prop1 + " : i." + field);
 							});
 							res1.push(keys1.join(",\r\t\t\t"));
 						}

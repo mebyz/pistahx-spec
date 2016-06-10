@@ -386,6 +386,7 @@ class Main {
                                 Lambda.map(props,function(prop) {
                                     var propx = Reflect.field(content.properties,prop);
                                     var field = Reflect.field(propx,'x-dto-field');
+                                    var assoc = Reflect.field(propx,'x-dto-assoc');
                                     var ftype = Reflect.field(propx,'x-dto-field-type');
                                     var r : EReg = ~/\./;
                                     if(r.match(field)){
@@ -394,8 +395,13 @@ class Main {
                                         else 
                                         keys.push('$prop : imap.get(\'$field\')');
                                     }
-                                    else
-                                        keys.push('$prop : i.$field');
+                                    else {
+                                        if(r.match(assoc)){
+                                            keys.push('$prop : imap.get(\'$assoc\')');
+                                        }
+                                        else
+                                            keys.push('$prop : i.$field');
+                                    }
                                 });                     
                                 res.push(keys.join(',\r\t\t\t'));
                             }
