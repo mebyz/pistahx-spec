@@ -396,6 +396,7 @@ class Main {
                                         keys.push('$prop : imap.get(\'$field\')');
                                     }
                                     else {
+
                                         if(assoc!='undefined'){
                                             keys.push('$prop : imap.get(\'$assoc\')');
                                         }
@@ -425,8 +426,9 @@ class Main {
                                 Lambda.map(props,function(prop) {
                                     var propx = Reflect.field(content.properties,prop);
                                     var field = Reflect.field(propx,'x-dto-field');
-					                if ( field.indexOf('.') == -1 )
-                                        keys.push('$field : i.$prop');
+                                    if(field != 'undefined')
+    					                if ( field.indexOf('.') == -1 )
+                                            keys.push('$field : i.$prop');
                                 });                     
                                 res.push(keys.join(',\r\t\t\t'));
                             }
