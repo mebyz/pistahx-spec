@@ -396,7 +396,7 @@ class Main {
                                         keys.push('$prop : imap.get(\'$field\')');
                                     }
                                     else {
-                                        if(r.match(assoc)){
+                                        if(assoc!='undefined'){
                                             keys.push('$prop : imap.get(\'$assoc\')');
                                         }
                                         else

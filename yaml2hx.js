@@ -426,7 +426,7 @@ Main.main = function() {
 								var r = new EReg("\\.","");
 								if(r.match(field)) {
 									if(ftype == "Int") keys1.push("" + prop1 + " : Std.parseInt(imap.get('" + field + "'))"); else keys1.push("" + prop1 + " : imap.get('" + field + "')");
-								} else if(r.match(assoc)) keys1.push("" + prop1 + " : imap.get('" + assoc + "')"); else keys1.push("" + prop1 + " : i." + field);
+								} else if(assoc != "undefined") keys1.push("" + prop1 + " : imap.get('" + assoc + "')"); else keys1.push("" + prop1 + " : i." + field);
 							});
 							res1.push(keys1.join(",\r\t\t\t"));
 						}
@@ -443,7 +443,7 @@ Main.main = function() {
 							Lambda.map(props2,function(prop2) {
 								var propx2 = Reflect.field(content.properties,prop2);
 								var field1 = Reflect.field(propx2,"x-dto-field");
-								if(field1!==undefined)if(field1.indexOf(".") == -1) keys2.push("" + Std.string(field1) + " : i." + prop2);
+								if(field1.indexOf(".") == -1) keys2.push("" + Std.string(field1) + " : i." + prop2);
 							});
 							res1.push(keys2.join(",\r\t\t\t"));
 						}
