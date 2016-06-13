@@ -389,9 +389,9 @@ class Main {
                                     var assoc = Reflect.field(propx,'x-dto-assoc');
                                     var ftype = Reflect.field(propx,'x-dto-field-type');
                                     var r : EReg = ~/\./;
-                                     if(r.match(assoc)){
-                                        keys.push('$prop : imap.get(\'$assoc\')');
-                                    }
+//                                     if(r.match(assoc)){
+//                                        keys.push('$prop : imap.get(\'$assoc\')');
+//                                    }
                                     if(r.match(field)){
                                         if (ftype == 'Int')
                                         keys.push('$prop : Std.parseInt(imap.get(\'$field\'))');
