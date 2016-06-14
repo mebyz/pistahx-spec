@@ -425,8 +425,8 @@ Main.main = function() {
 								var ftype = Reflect.field(propx1,"x-dto-field-type");
 								var r = new EReg("\\.","");
 								if(r.match(field)) {
-									if(ftype == "Int") keys1.push("" + prop1 + " : Std.parseInt(imap.get('" + field + "'))"); else keys1.push("" + prop1 + " : imap.get('" + field + "')");
-								} else if(Object.prototype.hasOwnProperty.call(propx1,"x-dto-assoc")) keys1.push("" + prop1 + " : imap.get('" + assoc + "')"); else keys1.push("" + prop1 + " : i." + field);
+									if(ftype == "Int") keys1.push("" + prop1 + " : Std.parseInt(imap.get('" + field + "'))"); else keys1.push("" + prop1 + " : untyped imap.get('" + field + "')");
+								} else if(Object.prototype.hasOwnProperty.call(propx1,"x-dto-assoc")) keys1.push("" + prop1 + " : untyped imap.get('" + assoc + "')"); else keys1.push("" + prop1 + " : i." + field);
 							});
 							res1.push(keys1.join(",\r\t\t\t"));
 						}

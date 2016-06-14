@@ -390,18 +390,18 @@ class Main {
                                     var ftype = Reflect.field(propx,'x-dto-field-type');
                                     var r : EReg = ~/\./;
 //                                     if(r.match(assoc)){
-//                                        keys.push('$prop : imap.get(\'$assoc\')');
+//                                        keys.push('$prop : untyped imap.get(\'$assoc\')');
 //                                    }
                                     if(r.match(field)){
                                         if (ftype == 'Int')
                                         keys.push('$prop : Std.parseInt(imap.get(\'$field\'))');
                                         else 
-                                        keys.push('$prop : imap.get(\'$field\')');
+                                        keys.push('$prop : untyped imap.get(\'$field\')');
                                     }
                                     else {
 
                                         if(Reflect.hasField(propx,'x-dto-assoc')){
-                                            keys.push('$prop : imap.get(\'$assoc\')');
+                                            keys.push('$prop : untyped imap.get(\'$assoc\')');
                                         }
                                         else
                                             keys.push('$prop : i.$field');
