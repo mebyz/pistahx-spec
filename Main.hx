@@ -403,6 +403,9 @@ class Main {
                                         if(Reflect.hasField(propx,'x-dto-assoc')){
                                             keys.push('$prop : untyped imap.get(\'$assoc\')');
                                         }
+                                        else if(Reflect.hasField(propx,'x-dto-assoc-is')){
+                                            keys.push('$prop : ( imap.get(\'$assoc\') > 0 )');
+                                        }
                                         else
                                             keys.push('$prop : i.$field');
                                     }
