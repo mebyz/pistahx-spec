@@ -387,6 +387,7 @@ class Main {
                                     var propx = Reflect.field(content.properties,prop);
                                     var field = Reflect.field(propx,'x-dto-field');
                                     var assoc = Reflect.field(propx,'x-dto-assoc');
+                                    var associs = Reflect.field(propx,'x-dto-assoc-is');
                                     var ftype = Reflect.field(propx,'x-dto-field-type');
                                     var r : EReg = ~/\./;
 //                                     if(r.match(assoc)){
@@ -404,7 +405,7 @@ class Main {
                                             keys.push('$prop : untyped imap.get(\'$assoc\')');
                                         }
                                         else if(Reflect.hasField(propx,'x-dto-assoc-is')){
-                                            keys.push('$prop : ( imap.get(\'$assoc\') > 0 )');
+                                            keys.push('$prop : ( imap.get(\'$associs\') > 0 )');
                                         }
                                         else
                                             keys.push('$prop : i.$field');

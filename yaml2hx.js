@@ -422,11 +422,12 @@ Main.main = function() {
 								var propx1 = Reflect.field(content.properties,prop1);
 								var field = Reflect.field(propx1,"x-dto-field");
 								var assoc = Reflect.field(propx1,"x-dto-assoc");
+								var associs = Reflect.field(propx1,"x-dto-assoc-is");
 								var ftype = Reflect.field(propx1,"x-dto-field-type");
 								var r = new EReg("\\.","");
 								if(r.match(field)) {
 									if(ftype == "Int") keys1.push("" + prop1 + " : Std.parseInt(imap.get('" + field + "'))"); else keys1.push("" + prop1 + " : untyped imap.get('" + field + "')");
-								} else if(Object.prototype.hasOwnProperty.call(propx1,"x-dto-assoc")) keys1.push("" + prop1 + " : untyped imap.get('" + assoc + "')"); else if(Object.prototype.hasOwnProperty.call(propx1,"x-dto-assoc-is")) keys1.push("" + prop1 + " : ( imap.get('" + assoc + "') > 0 )"); else keys1.push("" + prop1 + " : i." + field);
+								} else if(Object.prototype.hasOwnProperty.call(propx1,"x-dto-assoc")) keys1.push("" + prop1 + " : untyped imap.get('" + assoc + "')"); else if(Object.prototype.hasOwnProperty.call(propx1,"x-dto-assoc-is")) keys1.push("" + prop1 + " : ( imap.get('" + associs + "') > 0 )"); else keys1.push("" + prop1 + " : i." + field);
 							});
 							res1.push(keys1.join(",\r\t\t\t"));
 						}
