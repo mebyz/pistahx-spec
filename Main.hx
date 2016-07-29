@@ -292,14 +292,14 @@ class Main {
                         res.push('mauthHandler,\r\t\t');
                     }    
 
-                    if (args.ttl != '0')     {
+                    /*if (args.ttl != '0')     {
                         res.push('untyped function (req: PistahxRequest, res: PistahxResponse, next : MiddlewareNext) {\r\t\t\t');
                         res.push('res.express_redis_cache_name = \'$path\' + \'-\'+ req.uid;\r\t\t\t');
                         res.push('next();\r\t\t');
                         res.push('},\r\t\t');
                         res.push('cacheo.route({ expire: '+args.ttl+' }),\r\t\t');
                     } 
-                     else
+                     else*/
                         res.push('untyped function(req: PistahxRequest, res: Response, next: MiddlewareNext) { next(); },\r\t\t');
                     res.push('untyped function(req : PistahxRequest, res : Response){\r\t\t');
                     res.push('$businessClass.$opMethod(db, req, res, dbcacher, cacheo, '+haxe.Json.stringify(extra)+').then(function(out) {\n');
