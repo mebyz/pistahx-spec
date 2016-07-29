@@ -154,7 +154,7 @@ var ApiOperation = function(t) {
 	});
 	this.path = StringTools.replace(this.path,"{",":");
 	this.path = StringTools.replace(this.path,"}","");
-	this.extraParams = { 'url_params' : this.urlParams, 'ttl' : this.summary.ttl, 'xttl' : this.summary.xttl, 'cachekey' : this.summary.cachekey, 'xcachekey' : this.summary.xcachekey};
+	this.extraParams = { 'url_params' : this.urlParams, 'auth' : this.summary.auth, 'ttl' : this.summary.ttl, 'xttl' : this.summary.xttl, 'cachekey' : this.summary.cachekey, 'xcachekey' : this.summary.xcachekey};
 };
 ApiOperation.__name__ = ["ApiOperation"];
 ApiOperation.prototype = {
@@ -363,7 +363,14 @@ Main.main = function() {
 				var opMethod = operation.operation.httpMethod + "_" + opId;
 				var res = [];
 				res.push("\r\rapp." + operation.operation.httpMethod + ("( conf.get('BASE_URL')+'" + path + "',\r\t\t"));
-				if(args.ttl != "0") res.push("cacheo.route({ expire: " + args.ttl + " }),\r\t\t"); else res.push("untyped function(req: PistahxRequest, res: Response, next: MiddlewareNext) { next(); },\r\t\t");
+				if(args.auth != "0") res.push("mauthHandler,\r\t\t");
+				if(args.ttl != "0") {
+					res.push("untyped function (req: PistahxRequest, res: PistahxResponse, next : MiddlewareNext) {\r\t\t\t");
+					res.push("res.express_redis_cache_name = '" + path + "' + '-'+ req.uid;\r\t\t\t");
+					res.push("next();\r\t\t");
+					res.push("},\r\t\t");
+					res.push("cacheo.route({ expire: " + args.ttl + " }),\r\t\t");
+				} else res.push("untyped function(req: PistahxRequest, res: Response, next: MiddlewareNext) { next(); },\r\t\t");
 				res.push("untyped function(req : PistahxRequest, res : Response){\r\t\t");
 				res.push("" + businessClass + "." + opMethod + "(db, req, res, dbcacher, cacheo, " + JSON.stringify(extra) + ").then(function(out) {\n");
 				if(Object.prototype.hasOwnProperty.call(apiOp,"cacheEvents")) {
