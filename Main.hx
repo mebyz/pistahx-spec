@@ -288,7 +288,7 @@ class Main {
                     var res = [];
                     res.push('\r\rapp.'+operation.operation.httpMethod+'( conf.get(\'BASE_URL\')+\'$path\',\r\t\t');
                     
-                    if (args.auth != '0')     {
+                    if (args.auth != '0' && args.auth != '0' && untyped __js__("args.auth != undefined") )     {
                         res.push('mauthHandler,\r\t\t');
                     }    
 
@@ -300,7 +300,7 @@ class Main {
                         res.push('cacheo.route({ expire: '+args.ttl+' }),\r\t\t');
                     } 
                      else*/
-                        res.push('untyped function(req: PistahxRequest, res: Response, next: MiddlewareNext) { next(); },\r\t\t');
+                    //    res.push('untyped function(req: PistahxRequest, res: Response, next: MiddlewareNext) { next(); },\r\t\t');
                     res.push('untyped function(req : PistahxRequest, res : Response){\r\t\t');
                     res.push('$businessClass.$opMethod(db, req, res, dbcacher, cacheo, '+haxe.Json.stringify(extra)+').then(function(out) {\n');
 

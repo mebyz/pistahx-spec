@@ -363,8 +363,7 @@ Main.main = function() {
 				var opMethod = operation.operation.httpMethod + "_" + opId;
 				var res = [];
 				res.push("\r\rapp." + operation.operation.httpMethod + ("( conf.get('BASE_URL')+'" + path + "',\r\t\t"));
-				if(args.auth != "0") res.push("mauthHandler,\r\t\t");
-				res.push("untyped function(req: PistahxRequest, res: Response, next: MiddlewareNext) { next(); },\r\t\t");
+				if(args.auth != "0" && args.auth != "0" && args.auth != undefined) res.push("mauthHandler,\r\t\t");
 				res.push("untyped function(req : PistahxRequest, res : Response){\r\t\t");
 				res.push("" + businessClass + "." + opMethod + "(db, req, res, dbcacher, cacheo, " + JSON.stringify(extra) + ").then(function(out) {\n");
 				if(Object.prototype.hasOwnProperty.call(apiOp,"cacheEvents")) {
